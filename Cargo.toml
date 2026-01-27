@@ -1,6 +1,3 @@
-[package]
-name = "rust_estros_rewrite"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
+[workspace]
+resolver = "3"
+members = ["kernel", "lib/estrogen", "user/minimal"]
