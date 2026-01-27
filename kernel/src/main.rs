@@ -3,6 +3,7 @@
 
 #[allow(unused)]
 use core::panic::PanicInfo;
+core::arch::global_asm!("boot.S");
 
 #[cfg(not(test))]
 #[panic_handler]
