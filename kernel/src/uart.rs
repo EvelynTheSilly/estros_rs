@@ -52,13 +52,17 @@ macro_rules! println {
         use core::fmt::Write;
         let mut uart = Uart{};
         let _ = Uart::write_fmt(&mut uart,core::format_args!($($arg)*));
+        let _ = $crate::print!("\n");
     }};
 }
 
 #[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => {{
-        Uart::write_fmt($crate::format_args_nl!($($arg)*));
+        use uart::Uart;
+        use core::fmt::Write;
+        let mut uart = Uart{};
+        let _ = Uart::write_fmt(&mut uart,core::format_args!($($arg)*));
     }};
 }
 
