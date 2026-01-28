@@ -6,10 +6,7 @@ _RESET:                                     // starts in el2
 el1_start:
     bl load_stack
     
-    mrs x0, CPACR_EL1
-    orr x0, x0, #(3 << 20)   // FPEN = 0b11 (EL0 + EL1 allowed)
-    msr CPACR_EL1, x0
-    isb
+    enable_fpu
 
     //bl setup_vtable
 
@@ -21,6 +18,13 @@ el1_start:
 load_stack:
     ldr x0, =el1_stack_top
     mov sp, x0
+    ret
+
+enable_fpu:
+    mrs x0, CPACR_EL1
+    orr x0, x0, #(3 << 20)   // FPEN = 0b11 (EL0 + EL1 allowed)
+    msr CPACR_EL1, x0
+    isb
     ret
 /*
 setup_vtable:
