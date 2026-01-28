@@ -17,7 +17,6 @@ SECTIONS
 	. = . + 0x100000; /* 4kB of stack memory */
 	. = ALIGN(16);
 	el1_stack_top = .;
-	// unused el0 stack (for now)
 	. = . + 0x100000; /* 4kB of stack memory */
 	. = ALIGN(16);
 	_end = .;
