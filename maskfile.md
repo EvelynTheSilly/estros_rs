@@ -10,8 +10,6 @@ shopt -s globstar
 mkdir -p ./build
 
 mask build_debug
-
-cp ./target/aarch64-unknown-none/debug/kernel 
 ~~~
 
 ## build_release
@@ -47,18 +45,9 @@ echo ""
 qemu-system-aarch64  -M virt -cpu cortex-a57 -nographic -kernel ./build/kernel.elf
 ~~~
 
-## clean
+## buildrun
 
-> removes build artifacts from the directory
-
-~~~sh
-echo "cleaning"
-rm -fr build
-~~~
-
-## cbr
-
-> clean, build, run
+> build and run
 
 ~~~sh
 mask build

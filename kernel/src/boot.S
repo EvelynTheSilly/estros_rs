@@ -1,4 +1,4 @@
-.global _Reset
+.global _RESET
 _Reset:                                     // starts in el2
     b el1_start
 
