@@ -37,6 +37,7 @@
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             rust
+            cargo-watch
             pkg-config
             openssl
             cross.buildPackages.gcc

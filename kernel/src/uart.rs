@@ -14,6 +14,19 @@ const UART_INTERRUPT_MASK_REGISTER: *mut u8 = (UART_BASE + 0x38) as *mut u8;
 /// Interrupt clear register
 const UART_INTERRUPT_CLEAR_REGISTER: *mut u8 = (UART_BASE + 0x44) as *mut u8;
 
+pub struct Uart;
+
+impl core::fmt::Write for Uart {
+    fn write_str(&mut self, s: &str) -> core::fmt::Result {
+        for &byte in s.as_bytes() {
+            unsafe {
+                *UART_DATA_REGISTER = byte;
+            }
+        }
+        Ok(())
+    }
+}
+
 pub unsafe fn write_string(string: &str) {
     for &byte in string.as_bytes() {
         unsafe {
@@ -27,3 +40,27 @@ pub unsafe fn write_byte(char: u8) {
         *UART_DATA_REGISTER = char;
     }
 }
+
+#[macro_export]
+macro_rules! println {
+    () => {
+        let _ = $crate::print!("\n");
+        ()
+    };
+    ($($arg:tt)*) => {{
+        use uart::Uart;
+        use core::fmt::Write;
+        let mut uart = Uart{};
+        let _ = Uart::write_fmt(&mut uart,core::format_args!($($arg)*));
+    }};
+}
+
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => {{
+        Uart::write_fmt($crate::format_args_nl!($($arg)*));
+    }};
+}
+
+#[allow(unused)]
+pub(crate) use {print, println};

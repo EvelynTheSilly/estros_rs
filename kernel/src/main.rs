@@ -21,6 +21,7 @@ fn panic(_info: &PanicInfo) -> ! {
 #[unsafe(no_mangle)]
 pub extern "C" fn _kernel_entry() -> ! {
     unsafe {
+        uart::println!("test");
         uart::write_string(
             "rust? memory safety? speed? - you want it? it's yours my friend, as long as you have enough patience\n",
         );
