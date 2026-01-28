@@ -6,7 +6,7 @@ _RESET:                                     // starts in el2
 el1_start:
     bl load_stack
     
-    bl enable_fpu
+    //bl enable_fpu
 
     //bl setup_vtable
 
