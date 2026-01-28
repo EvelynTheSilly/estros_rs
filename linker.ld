@@ -1,12 +1,15 @@
 ENTRY(_RESET)
-
 SECTIONS
 {
 	. = ALIGN(16);
 	. = 0x40000000;
 	_start = .;
-	.startup . : { build/kernel(.text) } 
-	.text : { *(.text) } 
+    .startup : {
+        KEEP(*(.text._RESET))
+    }
+    .text : {
+        *(.text*)
+    }
 	.data : { *(.data) } 
 	.bss : { *(.bss COMMON) } 
     .vectors ALIGN(11): {

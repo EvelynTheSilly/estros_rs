@@ -4,12 +4,15 @@
 > Builds with default optimisations optimisations
 
 ~~~bash
+rm build -r
 echo "building project..."
 set -e
 shopt -s globstar
 mkdir -p ./build
 
+
 mask build_debug
+#aarch64-none-elf-objcopy -O binary ./build/kernel.elf ./build/kernel.elf
 ~~~
 
 ## build_release
@@ -19,7 +22,7 @@ mask build_debug
 ~~~bash
 cargo build --release
 
-cp ./target/aarch64-unknown-none/release/kernel ./build/kernel.elf
+cp ./target/aarch64-none-custom/release/kernel ./build/kernel.elf
 ~~~
 
 
@@ -30,7 +33,7 @@ cp ./target/aarch64-unknown-none/release/kernel ./build/kernel.elf
 ~~~bash
 cargo build
 
-cp ./target/aarch64-unknown-none/debug/kernel build/kernel.elf
+cp ./target/aarch64-none-custom/debug/kernel build/kernel.elf
 ~~~
 
 ## run

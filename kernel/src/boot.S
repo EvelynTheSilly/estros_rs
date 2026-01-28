@@ -1,5 +1,5 @@
 .global _RESET
-_Reset:                                     // starts in el2
+_RESET:                                     // starts in el2
     b el1_start
 
 .global el1_start
