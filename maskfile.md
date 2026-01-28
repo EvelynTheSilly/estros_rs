@@ -1,67 +1,39 @@
 # MaskFile
 
-
 ## build
-
-> Builds my project
+> Builds with default optimisations optimisations
 
 ~~~bash
-mask clean
 echo "building project..."
 set -e
 shopt -s globstar
+mkdir -p ./build
 
-# Define global paths
-export SRC_ROOT=$(pwd)
-export BUILD_DIR=$SRC_ROOT/build
-export OUT_DIR=$BUILD_DIR/out
-export BYPRODUCTS_DIR=$BUILD_DIR/byproducts
+mask build_debug
 
-
-# 1. Load Configuration 
-if [ -f "config.sh" ]; then
-    source ./config.sh
-else
-    echo "Error: config.sh not found!" && exit 1
-fi 
-
-build_dir() {
-    local dir=$1
-    local rel_path=${dir#$SRC_ROOT/}
-    
-    # Define unique paths for this component (The "Nix" style)
-    export OUT="$OUT_DIR/" #$rel_path"
-    export BYPRODUCTS="$BYPRODUCTS_DIR/$rel_path"
-    
-    mkdir -p "$OUT" "$BYPRODUCTS"
-    
-    # Run the local build script
-    echo "building $dir"
-    (cd "$dir" && ./build.sh)
-    echo "built $dir"
-}
-
-mkdir -p "$BUILD_DIR" "$OUT_DIR" "$BYPRODUCTS_DIR"
-
-build_dir src/kernel
-build_dir $INIT
-build_dir src/lib/LibEstrogen
-
-echo "out: $OUT_DIR"
-echo "out: $BUILD_DIR"
-echo "out: $BYPRODUCTS_DIR"
-ls -l "$OUT_DIR/kernel.o"
-CROSS=aarch64-none-elf
-
-# Link everything
-echo "link"
-$CROSS-ld -T src/linker.ld ${OUT_DIR#$SRC_ROOT/}/*.o -o $BUILD_DIR/kernel.elf
-
-# Optional: make binary
-echo "objcopy"
-$CROSS-objcopy -O binary $BUILD_DIR/kernel.elf $BUILD_DIR/kernel.bin
+cp ./target/aarch64-unknown-none/debug/kernel 
 ~~~
 
+## build_release
+
+> Builds with release optimisations
+
+~~~bash
+cargo build --release
+
+cp ./target/aarch64-unknown-none/release/kernel ./build/kernel.elf
+~~~
+
+
+## build_debug
+
+> Builds without optimisations
+
+~~~bash
+cargo build
+
+cp ./target/aarch64-unknown-none/debug/kernel build/kernel.elf
+~~~
 
 ## run
 
