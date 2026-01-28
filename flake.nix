@@ -7,8 +7,15 @@
     rust-overlay.url = "github:oxalica/rust-overlay";
   };
 
-  outputs = { self, nixpkgs, flake-utils, rust-overlay }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+      rust-overlay,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         cross = pkgs.pkgsCross.aarch64-embedded;
         overlays = [ rust-overlay.overlays.default ];
@@ -16,15 +23,14 @@
           inherit system overlays;
           config.allowUnsupportedSystem = true;
         };
-        toolchainToml =
-          builtins.fromTOML (builtins.readFile ./rust-toolchain.toml);
+        toolchainToml = builtins.fromTOML (builtins.readFile ./rust-toolchain.toml);
 
         toolchain = toolchainToml.toolchain;
 
         rust = pkgs.rust-bin.fromRustupToolchain {
           channel = toolchain.channel;
-          components = toolchain.components or [];
-          targets = toolchain.targets or [];
+          components = toolchain.components or [ ];
+          targets = toolchain.targets or [ ];
         };
       in
       {
@@ -35,7 +41,7 @@
             openssl
             cross.buildPackages.gcc
             cross.buildPackages.binutils
-            #cross.buildPackages.gdb
+            (if system != "darwin" then cross.buildPackages.gdb else { })
             pkgs.qemu
             pkgs.cmake
             pkgs.mask
@@ -45,7 +51,7 @@
             echo "AArch64 bare-metal dev shell ready!"
             echo "Toolchain prefix: aarch64-none-elf-"
             nu -e "alias cloc = cloc --vcs git"
-            '';
+          '';
         };
       }
     );
