@@ -3,9 +3,9 @@
 
 #[allow(unused)]
 use core::panic::PanicInfo;
-core::arch::global_asm!("boot.S");
+core::arch::global_asm!(include_str!("boot.S"));
 
-#[cfg(not(test))]
+//#[cfg(not(test))]
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     loop {}

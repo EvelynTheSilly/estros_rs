@@ -17,7 +17,7 @@ load_stack:
     ldr x0, =el1_stack_top
     mov sp, x0
     ret
-
+/*
 setup_vtable:
     ldr x0, =_vector_table                  // load vtable into r0
     msr VBAR_EL1, x0
@@ -37,3 +37,4 @@ go_to_init_process:
     ldr x2, =_INIT
     msr elr_el1, x2
     eret                    // jumps into EL0
+*/
