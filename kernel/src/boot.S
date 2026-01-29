@@ -8,7 +8,7 @@ el1_start:
     
     bl enable_fpu
 
-    //bl setup_vtable
+    bl setup_vtable
 
     // enter rust
     bl _kernel_entry                         // go to rust entry point
@@ -26,13 +26,14 @@ enable_fpu:
     msr CPACR_EL1, x0
     isb
     ret
-/*
+    
 setup_vtable:
     ldr x0, =_vector_table                  // load vtable into r0
     msr VBAR_EL1, x0
     isb                                     // move r0 to base vector table register
     ret
 
+/*
 go_to_init_process:
                             //set up stack pointer for EL0
     ldr x0, =el0_stack_top

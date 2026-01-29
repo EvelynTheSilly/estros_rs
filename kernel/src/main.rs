@@ -1,5 +1,6 @@
 #![no_std]
 #![no_main]
+#![feature(macro_metavar_expr_concat)]
 #![allow(unused_unsafe)]
 #![deny(clippy::float_arithmetic)]
 #![deny(clippy::float_cmp)]
@@ -12,6 +13,7 @@ use alloc::string::String;
 
 mod mem;
 mod uart;
+mod vectors;
 extern crate alloc;
 
 core::arch::global_asm!(include_str!("boot.S"));
@@ -36,6 +38,7 @@ pub extern "C" fn _kernel_entry() -> ! {
         println!("string: {str}");
         str.push_str(" push");
         println!("string: {str}");
+        core::arch::asm!("udf #0"); // should cause a cpu exception
         panic!("reached end of init function");
     };
 }
