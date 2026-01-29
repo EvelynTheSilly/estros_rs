@@ -4,7 +4,7 @@ use core::cell::UnsafeCell;
 use core::ptr::null_mut;
 use core::sync::atomic::{AtomicUsize, Ordering::Relaxed};
 
-const ARENA_SIZE: usize = 128 * 1024;
+const ARENA_SIZE: usize = 128 * 1024; // 128kb arena
 const MAX_SUPPORTED_ALIGN: usize = 4096;
 /// taken straight from the rust documentations, should work for some time
 #[repr(C, align(4096))] // 4096 == MAX_SUPPORTED_ALIGN
