@@ -20,7 +20,7 @@ impl core::fmt::Write for Uart {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
         for &byte in s.as_bytes() {
             unsafe {
-                *UART_DATA_REGISTER = byte;
+                core::ptr::write_volatile(UART_DATA_REGISTER, byte);
             }
         }
         Ok(())
@@ -30,14 +30,14 @@ impl core::fmt::Write for Uart {
 pub unsafe fn write_string(string: &str) {
     for &byte in string.as_bytes() {
         unsafe {
-            *UART_DATA_REGISTER = byte;
+            core::ptr::write_volatile(UART_DATA_REGISTER, byte);
         }
     }
 }
 
 pub unsafe fn write_byte(char: u8) {
     unsafe {
-        *UART_DATA_REGISTER = char;
+        core::ptr::write_volatile(UART_DATA_REGISTER, char);
     }
 }
 
