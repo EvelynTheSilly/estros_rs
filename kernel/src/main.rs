@@ -11,6 +11,7 @@ use alloc::string::String;
 use core::panic::PanicInfo;
 
 mod mem;
+mod syncronisation;
 mod uart;
 mod vectors;
 extern crate alloc;
