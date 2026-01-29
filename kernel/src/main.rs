@@ -1,6 +1,10 @@
 #![no_std]
 #![no_main]
 #![allow(unused_unsafe)]
+#![deny(clippy::float_arithmetic)]
+#![deny(clippy::float_cmp)]
+#![deny(clippy::float_cmp_const)]
+#![deny(clippy::float_equality_without_abs)]
 
 use core::panic::PanicInfo;
 
