@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-cortex-a = "8.1.1"
+aarch64-cpu = "11.2.0"
 tock-registers = "0.10.1"
 
 [[bin]]

@@ -7,9 +7,8 @@
 #![deny(clippy::float_cmp_const)]
 #![deny(clippy::float_equality_without_abs)]
 
-use core::panic::PanicInfo;
-
 use alloc::string::String;
+use core::panic::PanicInfo;
 
 mod mem;
 mod uart;
@@ -38,7 +37,6 @@ pub extern "C" fn _kernel_entry() -> ! {
         println!("string: {str}");
         str.push_str(" push");
         println!("string: {str}");
-        core::arch::asm!("udf #0"); // should cause a cpu exception
         panic!("reached end of init function");
     };
 }
