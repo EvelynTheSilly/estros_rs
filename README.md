@@ -19,7 +19,7 @@ nix develop # if you dont use nix.... too bad? you can find the package list in 
 ~~~
 run with
 ~~~sh
-mask run # cleans/builds/runs the project
+mask buildrun # builds and runs the project
 ~~~
 debug with 
 ~~~sh
