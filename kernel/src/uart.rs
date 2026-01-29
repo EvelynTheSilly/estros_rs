@@ -2,7 +2,7 @@
 
 const UART_BASE: u64 = 0x09000000;
 /// Data register (read/write)
-const UART_DATA_REGISTER: *mut u8 = (UART_BASE + 0x00) as *mut u8;
+const UART_DATA_REGISTER: *mut u8 = UART_BASE as *mut u8;
 /// Flag register
 const UART_FLAG_REGISTER: *mut u8 = (UART_BASE + 0x18) as *mut u8;
 /// flag register bitmask (00010000)
