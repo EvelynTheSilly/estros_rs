@@ -11,6 +11,7 @@
 use alloc::string::String;
 use core::panic::PanicInfo;
 
+mod drivers;
 mod mem;
 mod rng;
 mod syncronisation;
