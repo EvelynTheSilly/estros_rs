@@ -2,6 +2,12 @@
 #![no_main]
 #![feature(macro_metavar_expr_concat)]
 #![allow(unused_unsafe)]
+#![allow(
+    clippy::doc_markdown,
+    clippy::missing_panics_doc,
+    clippy::missing_errors_doc,
+    clippy::missing_safety_doc
+)]
 #![deny(clippy::float_arithmetic)]
 #![deny(clippy::float_cmp)]
 #![deny(clippy::float_cmp_const)]

@@ -49,7 +49,7 @@ unsafe impl GlobalAlloc for ArenaAllocator {
             .is_err()
         {
             return null_mut();
-        };
+        }
         unsafe { self.arena.get().cast::<u8>().add(allocated) }
     }
     unsafe fn dealloc(&self, _ptr: *mut u8, _layout: Layout) {}

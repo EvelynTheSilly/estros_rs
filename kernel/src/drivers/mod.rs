@@ -12,6 +12,7 @@ pub struct DriverManager {
 }
 
 impl DriverManager {
+    #[allow(clippy::redundant_closure_for_method_calls)]
     pub fn register_driver(
         user_drivers: &mut MapType<u64, Box<dyn UserSpaceDriver>>,
         driver: Box<dyn UserSpaceDriver>,
