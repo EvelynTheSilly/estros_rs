@@ -70,6 +70,5 @@ macro_rules! print {
     }};
 }
 
-use crate::syncronisation::GlobalSharedLock;
 #[allow(unused)]
 pub(crate) use {print, println};
