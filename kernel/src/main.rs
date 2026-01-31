@@ -6,6 +6,7 @@
 #![deny(clippy::float_cmp)]
 #![deny(clippy::float_cmp_const)]
 #![deny(clippy::float_equality_without_abs)]
+#![warn(clippy::missing_const_for_fn)]
 
 use alloc::string::String;
 use core::panic::PanicInfo;
@@ -19,8 +20,8 @@ extern crate alloc;
 core::arch::global_asm!(include_str!("boot.S"));
 
 #[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
-    println!("KERNEL PANIC: {}", { _info.message() });
+fn panic(info: &PanicInfo) -> ! {
+    println!("KERNEL PANIC: {}", { info.message() });
     loop {}
 }
 
