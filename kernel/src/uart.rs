@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-const UART_BASE: u64 = 0x09000000;
+const UART_BASE: u64 = 0x0900_0000;
 /// Data register (read/write)
 const UART_DATA_REGISTER: *mut u8 = UART_BASE as *mut u8;
 /// Flag register
@@ -14,7 +14,11 @@ const UART_INTERRUPT_MASK_REGISTER: *mut u8 = (UART_BASE + 0x38) as *mut u8;
 /// Interrupt clear register
 const UART_INTERRUPT_CLEAR_REGISTER: *mut u8 = (UART_BASE + 0x44) as *mut u8;
 
+use crate::syncronisation::GlobalSharedLock;
+
 pub struct Uart;
+
+pub static UART: GlobalSharedLock<Uart> = GlobalSharedLock::new(Uart);
 
 impl core::fmt::Write for Uart {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
@@ -48,10 +52,7 @@ macro_rules! println {
         ()
     };
     ($($arg:tt)*) => {{
-        use uart::Uart;
-        use core::fmt::Write;
-        let mut uart = Uart{};
-        let _ = Uart::write_fmt(&mut uart,core::format_args!($($arg)*));
+        let _ = $crate::print!($($arg)*);
         let _ = $crate::print!("\n");
     }};
 }
@@ -60,11 +61,15 @@ macro_rules! println {
 macro_rules! print {
     ($($arg:tt)*) => {{
         use uart::Uart;
+        use uart::UART;
         use core::fmt::Write;
-        let mut uart = Uart{};
-        let _ = Uart::write_fmt(&mut uart,core::format_args!($($arg)*));
+        use $crate::syncronisation::Mutex;
+        UART.lock(|mut uart|{
+            let _ = Uart::write_fmt(&mut uart,core::format_args!($($arg)*));
+        })
     }};
 }
 
+use crate::syncronisation::GlobalSharedLock;
 #[allow(unused)]
 pub(crate) use {print, println};

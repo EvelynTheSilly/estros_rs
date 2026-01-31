@@ -45,3 +45,6 @@ impl<T> Mutex for NullLock<T> {
         f(data)
     }
 }
+
+/// type alias for the global lock used to static global objects
+pub type GlobalSharedLock<T> = NullLock<T>;
