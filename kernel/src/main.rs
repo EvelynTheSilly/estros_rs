@@ -14,7 +14,6 @@
 #![deny(clippy::float_equality_without_abs)]
 #![warn(clippy::missing_const_for_fn)]
 
-use alloc::string::String;
 use core::panic::PanicInfo;
 
 mod drivers;
@@ -36,17 +35,8 @@ fn panic(info: &PanicInfo) -> ! {
 #[unsafe(no_mangle)]
 pub extern "C" fn _kernel_entry() -> ! {
     unsafe {
-        println!("test");
-        println!(
-            "rust? memory safety? speed? - you want it? it's yours my friend, as long as you have enough patience"
-        );
-        println!(
-            "sorry link, i can't give ease of use, come back when youre a little - mmmm - smarter"
-        );
-        let mut str = String::from("haiii im a string");
-        println!("string: {str}");
-        str.push_str(" push");
-        println!("string: {str}");
+        println!("booting estros...");
+
         panic!("reached end of init function");
     };
 }
