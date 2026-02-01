@@ -60,8 +60,8 @@ macro_rules! println {
 #[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => {{
-        use uart::Uart;
-        use uart::UART;
+        use crate::uart::Uart;
+        use crate::uart::UART;
         use core::fmt::Write;
         use $crate::syncronisation::Mutex;
         UART.lock(|mut uart|{
