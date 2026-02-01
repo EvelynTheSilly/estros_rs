@@ -5,7 +5,9 @@ edition = "2024"
 
 [dependencies]
 aarch64-cpu = "11.2.0"
+qemu-exit = { version = "3.0.2", optional = true }
 tock-registers = "0.10.1"
+
 
 [[bin]]
 name = "kernel"
@@ -13,3 +15,8 @@ path = "src/main.rs"
 test = false
 doctest = false
 bench = false
+
+[features]
+default = ["qemu"]
+semihosting = []
+qemu = ["semihosting", "dep:qemu-exit"]

@@ -29,6 +29,8 @@ core::arch::global_asm!(include_str!("boot.S"));
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("KERNEL PANIC: {}", { info.message() });
+    #[cfg(feature = "qemu")]
+    drivers::semihosting::shutdown(1);
     loop {}
 }
 
