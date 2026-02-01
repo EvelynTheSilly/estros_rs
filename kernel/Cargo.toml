@@ -5,7 +5,6 @@ edition = "2024"
 
 [dependencies]
 aarch64-cpu = "11.2.0"
-no-panic = "0.1.36"
 tock-registers = "0.10.1"
 
 [[bin]]
