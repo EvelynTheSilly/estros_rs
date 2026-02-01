@@ -9,7 +9,6 @@
 
   outputs =
     {
-      self,
       nixpkgs,
       flake-utils,
       rust-overlay,
@@ -23,7 +22,7 @@
           inherit system overlays;
           config.allowUnsupportedSystem = true;
         };
-        toolchainToml = builtins.fromTOML (builtins.readFile ./rust-toolchain.toml);
+        toolchainToml = fromTOML (builtins.readFile ./rust-toolchain.toml);
 
         toolchain = toolchainToml.toolchain;
 
