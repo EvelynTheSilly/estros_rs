@@ -1,3 +1,5 @@
+mod cpu_state;
+
 core::arch::global_asm!(include_str!("vectors.S"));
 
 macro_rules! panic_function {
