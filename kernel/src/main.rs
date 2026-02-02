@@ -27,6 +27,7 @@ extern crate alloc;
 core::arch::global_asm!(include_str!("boot.S"));
 
 #[panic_handler]
+#[allow(unreachable_code)] // rustc complains code isnt reachable when it very much is when qemu isnt enabled
 fn panic(info: &PanicInfo) -> ! {
     println!("KERNEL PANIC: {}", { info.message() });
     #[cfg(feature = "qemu")]
@@ -35,10 +36,14 @@ fn panic(info: &PanicInfo) -> ! {
 }
 
 #[unsafe(no_mangle)]
+#[allow(unreachable_code)] // rustc complains code isnt reachable when it very much is when qemu isnt enabled
 pub extern "C" fn _kernel_entry() -> ! {
     unsafe {
         println!("booting estros...");
 
-        panic!("reached end of init function");
+        #[cfg(feature = "qemu")]
+        drivers::semihosting::shutdown(0);
+
+        panic!("reached end of init function and didnt find proper shutdown driver");
     };
 }

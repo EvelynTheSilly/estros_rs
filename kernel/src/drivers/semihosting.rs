@@ -1,5 +1,5 @@
 #[cfg(feature = "qemu")]
-pub fn shutdown(code: u32) {
+pub fn shutdown(code: u32) -> ! {
     use crate::println;
     use qemu_exit::QEMUExit;
     println!("shutting down");
