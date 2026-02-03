@@ -40,6 +40,8 @@ fn panic(info: &PanicInfo) -> ! {
 pub extern "C" fn _kernel_entry() -> ! {
     unsafe {
         println!("booting estros...");
+        println!("testing cpustate dump functionality");
+        vectors::cpu_state::dump_cpu_state_test();
 
         #[cfg(feature = "qemu")]
         drivers::semihosting::shutdown(0);

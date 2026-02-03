@@ -1,11 +1,11 @@
-mod cpu_state;
+pub mod cpu_state;
 
 core::arch::global_asm!(include_str!("vectors.S"));
 
 macro_rules! panic_function {
     ($func_name:ident) => {
         #[unsafe(no_mangle)]
-        pub extern "C" fn $func_name() {
+        extern "C" fn $func_name() {
             // The `stringify!` macro converts an `ident` into a string.
             panic!("{} triggered", stringify!($func_name));
         }
