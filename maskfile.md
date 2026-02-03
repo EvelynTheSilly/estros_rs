@@ -20,6 +20,7 @@ mask build_debug
 > Builds with release optimisations
 
 ~~~bash
+set -e
 cargo build --release
 
 cp ./target/aarch64-none-custom/release/kernel ./build/kernel.elf
@@ -31,6 +32,7 @@ cp ./target/aarch64-none-custom/release/kernel ./build/kernel.elf
 > Builds without optimisations
 
 ~~~bash
+set -e
 cargo build
 
 cp ./target/aarch64-none-custom/debug/kernel build/kernel.elf
@@ -68,7 +70,7 @@ echo "exit with ctrl a, then x"
 echo "run mask start_gdb to attatch to the debugger"
 echo ""
 echo ""
-qemu-system-aarch64 -M virt -cpu cortex-a57 -nographic -kernel ./build/kernel.elf -S -s
+qemu-system-aarch64 -M virt -cpu cortex-a57 -nographic -kernel ./build/kernel.elf -S -s -semihosting
 ~~~
 
 ## start_gdb
