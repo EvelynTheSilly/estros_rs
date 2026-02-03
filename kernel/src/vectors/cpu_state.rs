@@ -6,6 +6,8 @@ use crate::println;
 #[derive(Debug)]
 struct State {
     x: [u64; 30],
+    lr: u64,
+    sp: u64,
 }
 
 unsafe extern "C" {
@@ -16,11 +18,6 @@ global_asm!(
     r"
     .global dump_cpu_state_test
     dump_cpu_state_test:
-        mov x0, #0xFFFFFFFF
-        mov x1, #0xFFFFFFFF
-        mov x2, #0xFFFFFFFF
-        mov x3, #0xFFFFFFFF
-        mov x29, #0xFFFFFFFF
         stp x28, x29, [sp, #-16]!
         stp x26, x27, [sp, #-16]!
         stp x24, x25, [sp, #-16]!
