@@ -1,23 +1,15 @@
 use core::arch::global_asm;
 
-use crate::println;
-
 #[repr(C)]
 #[derive(Debug)]
-struct State {
-    x: [u64; 30],
-    lr: u64,
-    sp: u64,
-}
-
-unsafe extern "C" {
-    pub unsafe fn dump_cpu_state_test() -> !;
+pub struct State {
+    x: [u64; 31],
 }
 
 global_asm!(
     r"
-    .global dump_cpu_state_test
-    dump_cpu_state_test:
+    .global dump_cpu_state
+    dump_cpu_state:
         stp x28, x29, [sp, #-16]!
         stp x26, x27, [sp, #-16]!
         stp x24, x25, [sp, #-16]!
@@ -34,12 +26,6 @@ global_asm!(
         stp x2, x3, [sp, #-16]!
         stp x0, x1, [sp, #-16]!
         mov x0, sp
-        b print_cpu_state
+        ret
 "
 );
-
-#[unsafe(no_mangle)]
-extern "C" fn print_cpu_state(state: State) -> ! {
-    println!("state dump {:?}", state);
-    panic!("wahhhh");
-}

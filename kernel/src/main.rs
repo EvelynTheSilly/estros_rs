@@ -41,7 +41,19 @@ pub extern "C" fn _kernel_entry() -> ! {
     unsafe {
         println!("booting estros...");
         println!("testing cpustate dump functionality");
-        vectors::cpu_state::dump_cpu_state_test();
+        core::arch::asm!(
+            "
+            mov x5, #0xFF
+            mov x9, #0xFF
+            mov x4, #0xFF
+            mov x3, #0xFF
+            mov x2, #0xFF
+            mov x1, #0xFF
+            mov x0, #0xFF
+            mov x30, #0xFF
+            udf #0
+            "
+        );
 
         #[cfg(feature = "qemu")]
         drivers::semihosting::shutdown(0);
