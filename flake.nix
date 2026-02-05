@@ -42,7 +42,7 @@
             openssl
             cross.buildPackages.gcc
             cross.buildPackages.binutils
-            (if system != "darwin" then cross.buildPackages.gdb else { })
+            (if system != "aarch64-darwin" then cross.buildPackages.gdb else null) 
             pkgs.qemu
             pkgs.cmake
             pkgs.mask
