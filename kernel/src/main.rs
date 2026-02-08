@@ -43,14 +43,12 @@ pub extern "C" fn _kernel_entry() -> ! {
         println!("testing cpustate dump functionality");
         core::arch::asm!(
             "
-            mov x5, #0xFF
-            mov x9, #0xFF
-            mov x4, #0xFF
-            mov x3, #0xFF
-            mov x2, #0xFF
-            mov x1, #0xFF
-            mov x0, #0xFF
-            mov x30, #0xFF
+            str x30, [sp, #-8]!
+            bl dump_cpu_state
+            
+            bl load_cpu_state
+            ldr x30, [sp], #8
+            
             udf #0
             "
         );

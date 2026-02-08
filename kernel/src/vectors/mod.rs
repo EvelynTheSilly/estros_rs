@@ -41,6 +41,9 @@ macro_rules! asm_vector_table {
 
                     "bl ", stringify!($vector_name), "_handler\n",
 
+                    "bl load_cpu_state\n",
+                    "ldr x30, [sp], #8\n",
+
                     "add sp, sp, {cpu_state_size}\n",
 
                     ".space 128 - (. - ",stringify!($vector_name),")\n",
