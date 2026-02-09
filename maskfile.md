@@ -21,7 +21,7 @@ mask build_debug
 
 ~~~bash
 set -e
-cargo build --release
+cargo build --release -Z json-target-spec
 
 cp ./target/aarch64-none-custom/release/kernel ./build/kernel.elf
 ~~~
@@ -33,7 +33,7 @@ cp ./target/aarch64-none-custom/release/kernel ./build/kernel.elf
 
 ~~~bash
 set -e
-cargo build
+cargo build -Z json-target-spec
 
 cp ./target/aarch64-none-custom/debug/kernel build/kernel.elf
 ~~~
@@ -55,6 +55,7 @@ qemu-system-aarch64  -M virt -cpu cortex-a57 -nographic -kernel ./build/kernel.e
 > build and run
 
 ~~~sh
+set -e
 mask build
 mask run
 ~~~

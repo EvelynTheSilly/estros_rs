@@ -42,7 +42,7 @@
             openssl
             cross.buildPackages.gcc
             cross.buildPackages.binutils
-            (if system != "aarch64-darwin" then cross.buildPackages.gdb else null) 
+            (if system != "aarch64-darwin" then cross.buildPackages.gdb else null)
             pkgs.qemu
             pkgs.cmake
             pkgs.mask
@@ -51,7 +51,7 @@
           shellHook = ''
             echo "AArch64 bare-metal dev shell ready!"
             echo "Toolchain prefix: aarch64-none-elf-"
-            nu -e "alias cloc = cloc --vcs git"
+            nu -e "alias cloc = cloc --vcs git; alias bacon = bacon -- -Z json-target-spec; alias cargo = cargo -Z json-target-spec "
           '';
         };
       }
