@@ -4,11 +4,14 @@ _RESET:                                     // starts in el2
 
 .global el1_start
 el1_start:
+    mov x20, x0
     bl load_stack
     
     bl enable_fpu
 
     bl setup_vtable
+    
+    mov x0, x20
 
     // enter rust
     bl _kernel_entry                         // go to rust entry point

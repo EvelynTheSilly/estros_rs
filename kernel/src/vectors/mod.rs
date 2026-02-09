@@ -6,7 +6,7 @@ macro_rules! panicking_function {
         extern "C" fn $func_name(state: &mut cpu_state::State) {
             // The `stringify!` macro converts an `ident` into a string.
             panic!(
-                "{} triggered\n state dump \n{:?}",
+                "{} triggered\n state dump \n{:x?}",
                 stringify!($func_name),
                 state
             );

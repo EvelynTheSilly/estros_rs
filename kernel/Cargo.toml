@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 aarch64-cpu = "11.2.0"
+anyhow = { version = "1.0.101", default-features = false }
 qemu-exit = { version = "3.0.2", optional = true }
 tock-registers = "0.10.1"
 

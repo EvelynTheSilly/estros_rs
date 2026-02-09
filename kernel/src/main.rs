@@ -17,6 +17,7 @@
 use core::panic::PanicInfo;
 
 mod drivers;
+mod dtb;
 mod mem;
 mod rng;
 mod syncronisation;
@@ -37,21 +38,11 @@ fn panic(info: &PanicInfo) -> ! {
 
 #[unsafe(no_mangle)]
 #[allow(unreachable_code)] // rustc complains code isnt reachable when it very much is when qemu isnt enabled
-pub extern "C" fn _kernel_entry() -> ! {
+pub extern "C" fn _kernel_entry(dtb_addr: *mut u8) -> ! {
     unsafe {
         println!("booting estros...");
-        println!("testing cpustate dump functionality");
-        core::arch::asm!(
-            "
-            str x30, [sp, #-8]!
-            bl dump_cpu_state
-            
-            bl load_cpu_state
-            ldr x30, [sp], #8
-            
-            udf #0
-            "
-        );
+        println!("loading dtb");
+        let dtb = dtb::Dtb::new(dtb_addr);
 
         #[cfg(feature = "qemu")]
         drivers::semihosting::shutdown(0);
