@@ -38,11 +38,9 @@ fn panic(info: &PanicInfo) -> ! {
 
 #[unsafe(no_mangle)]
 #[allow(unreachable_code)] // rustc complains code isnt reachable when it very much is when qemu isnt enabled
-pub extern "C" fn _kernel_entry(dtb_addr: *mut u8) -> ! {
+pub extern "C" fn _kernel_entry(dtb_addr: *mut u64) -> ! {
     unsafe {
         println!("booting estros...");
-        println!("loading dtb");
-        let dtb = dtb::Dtb::new(dtb_addr);
 
         #[cfg(feature = "qemu")]
         drivers::semihosting::shutdown(0);
