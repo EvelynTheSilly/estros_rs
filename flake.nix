@@ -48,6 +48,7 @@
             pkgs.mask
             pkgs.cloc
           ];
+          CARGO_UNSTABLE_JSON_TARGET_SPEC = "true";
           shellHook = ''
             echo "AArch64 bare-metal dev shell ready!"
             echo "Toolchain prefix: aarch64-none-elf-"
