@@ -10,30 +10,38 @@ set -e
 shopt -s globstar
 mkdir -p ./build
 
+if [ -f "config.sh" ]; then
+    source ./config.sh
+else
+    source ./exampleconfig.sh
+fi
 
-mask build_debug
+cargo build --bin $INIT -Z json-target-spec $( [ "$OPT" = release ] && printf '%s' --release )
+cp ./target/aarch64-none-custom/$OPT/$INIT ./build/init.elf
+
+mask build_kernel_debug
 #aarch64-none-elf-objcopy -O binary ./build/kernel.elf ./build/kernel.elf
 ~~~
 
-## build_release
+## build_kernel_release
 
 > Builds with release optimisations
 
 ~~~bash
 set -e
-cargo build --release -Z json-target-spec
+cargo build --bin kernel --release -Z json-target-spec
 
 cp ./target/aarch64-none-custom/release/kernel ./build/kernel.elf
 ~~~
 
 
-## build_debug
+## build_kernel_debug
 
 > Builds without optimisations
 
 ~~~bash
 set -e
-cargo build -Z json-target-spec
+cargo build --bin kernel -Z json-target-spec
 
 cp ./target/aarch64-none-custom/debug/kernel build/kernel.elf
 ~~~
