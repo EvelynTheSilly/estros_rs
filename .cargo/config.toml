@@ -3,9 +3,7 @@ target = "aarch64-none-custom.json"
 
 [target.aarch64-none-custom]
 rustflags = [
-    "-C", "link-arg=-Tlinker.ld",
     "-C", "link-arg=-nostartfiles",
-    #"-C", "target-feature=-neon",
 ]
 
 [unstable]

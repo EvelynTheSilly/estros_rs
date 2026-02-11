@@ -14,12 +14,15 @@
 #![deny(clippy::float_equality_without_abs)]
 #![warn(clippy::missing_const_for_fn)]
 
+use alloc::vec::Vec;
 use core::panic::PanicInfo;
+use elf::{endian::AnyEndian, segment::ProgramHeader};
 
 mod drivers;
 mod dtb;
 mod mem;
 mod rng;
+mod scheduler;
 mod syncronisation;
 mod uart;
 mod vectors;
@@ -38,10 +41,21 @@ fn panic(info: &PanicInfo) -> ! {
 
 #[unsafe(no_mangle)]
 #[allow(unreachable_code)] // rustc complains code isnt reachable when it very much is when qemu isnt enabled
-pub extern "C" fn _kernel_entry(dtb_addr: *mut u64) -> ! {
+pub extern "C" fn _kernel_entry(_dtb_addr: *mut u64) -> ! {
     unsafe {
         println!("booting estros...");
 
+        println!("loading init process elf");
+        let init = include_bytes!("../../build/init.elf");
+        let init_elf = elf::ElfBytes::<AnyEndian>::minimal_parse(init).unwrap();
+        println!("init elf {} bytes in size", init.len());
+        let headers: Vec<ProgramHeader> = init_elf
+            .segments() // actually gets the headers
+            .expect("init elf should have segments")
+            .iter()
+            .filter(|segment_header| segment_header.p_type == elf::abi::PT_LOAD) // filter to only the ones that should be loaded
+            .collect();
+        println!("{} load segments found", headers.len());
         #[cfg(feature = "qemu")]
         drivers::semihosting::shutdown(0);
 

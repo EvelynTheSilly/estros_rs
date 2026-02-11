@@ -3,7 +3,8 @@
 
 use core::panic::PanicInfo;
 
-extern "C" fn _init() {
+#[unsafe(no_mangle)]
+extern "C" fn _start() {
     loop {}
 }
 
