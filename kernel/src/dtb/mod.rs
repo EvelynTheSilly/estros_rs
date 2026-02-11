@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use crate::dtb::header::DtbHeader;
 use crate::dtb::memory_reservation_block::MemoryReservationBlock;
 use crate::println;
