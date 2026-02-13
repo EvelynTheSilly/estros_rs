@@ -56,6 +56,9 @@ pub extern "C" fn _kernel_entry(_dtb_addr: *mut u64) -> ! {
             .filter(|segment_header| segment_header.p_type == elf::abi::PT_LOAD) // filter to only the ones that should be loaded
             .collect();
         println!("{} load segments found", headers.len());
+        headers
+            .iter()
+            .for_each(|header| println!("{:x?} all segment data", header));
         #[cfg(feature = "qemu")]
         drivers::semihosting::shutdown(0);
 

@@ -11,9 +11,10 @@ SECTIONS
     .text : {
         *(.text*)
     } : text
-	.data : { *(.data) } : data
-	.bss : { *(.bss COMMON) } : data
     .rodata : {
         *(.rodata)
     } : text
+    . = ALIGN(0x1000);
+	.data : { *(.data*) } : data
+	.bss : { *(.bss COMMON) } : data
 }
