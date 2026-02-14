@@ -25,7 +25,7 @@ macro_rules! panicking_vector_handler_block {
 }
 
 macro_rules! asm_vector_table {
-    ($($vector_name:ident),*) => {
+    ($($vector_name:ident),+) => {
         core::arch::global_asm!(
             concat!(
                 // header
