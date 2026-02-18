@@ -15,7 +15,7 @@ it mainly falls down to my inexperience with zig, i dont know much of how it wor
 
 enter the dev environment
 ~~~sh
-nix develop # if you dont use nix.... too bad? you can find the package list in the flake
+nix develop # if you dont use nix, you can find the package list in the flake
 ~~~
 run with
 ~~~sh
