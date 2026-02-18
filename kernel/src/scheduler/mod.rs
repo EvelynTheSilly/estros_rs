@@ -15,10 +15,10 @@ impl<Scheduler> ProcessManager<Scheduler>
 where
     Scheduler: CpuScheduler,
 {
-    pub fn schedule(self: &mut Self) -> Result<SchedulerThread> {
+    pub fn schedule(&mut self) -> Result<SchedulerThread> {
         Scheduler::schedule(self)
     }
-    pub fn store_thread(self: &mut Self) {}
+    pub fn store_thread(&mut self) {}
 }
 
 pub struct Process {

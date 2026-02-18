@@ -11,7 +11,6 @@ const NORMAL_CACHEABLE: Attributes =
 use aarch64_paging::{
     descriptor::Attributes,
     idmap::IdMap,
-    linearmap::LinearMap,
     paging::{MemoryRegion, TranslationRegime},
 };
 use alloc::vec::Vec;

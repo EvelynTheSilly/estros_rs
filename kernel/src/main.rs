@@ -48,7 +48,7 @@ pub extern "C" fn _kernel_entry(_dtb_addr: *mut u64) -> ! {
 
         println!("initialising mmu");
         // apparently we need to keep hold of it?
-        let map = mem::mmu::init_mmu(vec![]);
+        let _map = mem::mmu::init_mmu(vec![]);
 
         println!("loading init process elf");
         let init = include_bytes!("../../build/init.elf");
