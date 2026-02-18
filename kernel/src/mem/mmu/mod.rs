@@ -8,6 +8,11 @@ const GIGABYTE: u64 = MEGABYTE * 1048;
 
 const NORMAL_CACHEABLE: Attributes =
     Attributes::ATTRIBUTE_INDEX_0.union(Attributes::INNER_SHAREABLE);
+const DEVICE_MEM: Attributes = Attributes::ATTRIBUTE_INDEX_1
+    .union(Attributes::ACCESSED)
+    .union(Attributes::VALID)
+    .union(Attributes::NON_GLOBAL); // Device memory usually shouldn't be Global anyway, but acceptable here.
+const MAIR: u64 = (0xFF << 0) | (0x00 << 8);
 use aarch64_paging::{
     descriptor::Attributes,
     idmap::IdMap,
@@ -21,10 +26,8 @@ use crate::println;
 pub fn init_mmu(_device_ranges: Vec<(MemoryRegion, Attributes)>) -> IdMap {
     let mut memmap = IdMap::new(
         1, //
-        1, // 48 bit vadresses
-        //0,
+        0, // 48 bit vadresses
         TranslationRegime::El1And0,
-        //aarch64_paging::paging::VaRange::Lower,
     );
     memmap
         .map_range(
@@ -35,7 +38,10 @@ pub fn init_mmu(_device_ranges: Vec<(MemoryRegion, Attributes)>) -> IdMap {
                 | Attributes::ACCESSED
                 | Attributes::OUTER_SHAREABLE,
         )
-        .expect("maping memory failed");
+        .expect("failed to map kernel");
+    memmap
+        .map_range(&MemoryRegion::new(0x0900_0000, 0x0900_1000), DEVICE_MEM)
+        .expect("failed to map uart");
     unsafe {
         memmap.activate();
         asm!(
@@ -45,7 +51,7 @@ pub fn init_mmu(_device_ranges: Vec<(MemoryRegion, Attributes)>) -> IdMap {
         println!("loaded tcr_el1");
         asm!(
             "msr mair_el1, {val}",
-            val = in(reg) u64::MAX as u64,
+            val = in(reg) MAIR as u64,
         );
         println!("loaded main_el1");
         let mut sctlr: u64;
@@ -56,6 +62,11 @@ pub fn init_mmu(_device_ranges: Vec<(MemoryRegion, Attributes)>) -> IdMap {
             out("x0") sctlr
         );
         println!("read out sctlr: {:b}", sctlr);
+        // IMPORTANT: Ensure page table writes are visible and TLB is clean
+        asm!("dsb ish"); // Data Synchronization Barrier (Inner Shareable)
+        asm!("tlbi vmalle1"); // Invalidate local TLB (just in case)
+        asm!("dsb ish"); // Ensure invalidation completes
+        asm!("isb"); // Instruction Synchronization Barrier
         asm!(
             "
             orr {val}, {val}, #1        // set M
