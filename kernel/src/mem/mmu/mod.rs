@@ -23,7 +23,7 @@ use core::arch::asm;
 
 use crate::println;
 
-pub fn init_mmu(_device_ranges: Vec<(MemoryRegion, Attributes)>) -> IdMap {
+pub fn init_mmu(device_ranges: Vec<&MemoryRegion>) -> IdMap {
     let mut memmap = IdMap::new(
         1, //
         0, // 48 bit vadresses
@@ -39,9 +39,11 @@ pub fn init_mmu(_device_ranges: Vec<(MemoryRegion, Attributes)>) -> IdMap {
                 | Attributes::OUTER_SHAREABLE,
         )
         .expect("failed to map kernel");
-    memmap
-        .map_range(&MemoryRegion::new(0x0900_0000, 0x0900_1000), DEVICE_MEM)
-        .expect("failed to map uart");
+    for range in device_ranges {
+        memmap
+            .map_range(range, DEVICE_MEM)
+            .expect("failed to map uart");
+    }
     unsafe {
         memmap.activate();
         asm!(

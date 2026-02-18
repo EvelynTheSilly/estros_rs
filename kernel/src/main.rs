@@ -14,6 +14,7 @@
 #![deny(clippy::float_equality_without_abs)]
 #![warn(clippy::missing_const_for_fn)]
 
+use aarch64_paging::paging::MemoryRegion;
 use alloc::vec;
 use alloc::vec::Vec;
 use core::panic::PanicInfo;
@@ -48,7 +49,7 @@ pub extern "C" fn _kernel_entry(_dtb_addr: *mut u64) -> ! {
 
         println!("initialising mmu");
         // apparently we need to keep hold of it?
-        let _map = mem::mmu::init_mmu(vec![]);
+        let _map = mem::mmu::init_mmu(vec![&MemoryRegion::new(0x0900_0000, 0x0900_1000)]);
 
         println!("loading init process elf");
         let init = include_bytes!("../../build/init.elf");
