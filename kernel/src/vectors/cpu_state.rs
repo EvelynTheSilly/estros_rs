@@ -1,7 +1,7 @@
 use core::arch::global_asm;
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Default, Clone)]
 pub struct State {
     x: [u64; 31],
 }
