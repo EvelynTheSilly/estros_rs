@@ -14,6 +14,7 @@
 #![deny(clippy::float_equality_without_abs)]
 #![warn(clippy::missing_const_for_fn)]
 
+use alloc::vec;
 use alloc::vec::Vec;
 use core::panic::PanicInfo;
 use elf::{endian::AnyEndian, segment::ProgramHeader};
@@ -44,6 +45,10 @@ fn panic(info: &PanicInfo) -> ! {
 pub extern "C" fn _kernel_entry(_dtb_addr: *mut u64) -> ! {
     unsafe {
         println!("booting estros...");
+
+        println!("initialising mmu");
+        // apparently we need to keep hold of it?
+        let map = mem::mmu::init_mmu(vec![]);
 
         println!("loading init process elf");
         let init = include_bytes!("../../build/init.elf");
