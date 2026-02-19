@@ -1,5 +1,5 @@
-.global _RESET
-_RESET:                                     // starts in el2
+.global kmain
+kmain:                                     // starts in el2
     b el1_start
 
 .global el1_start

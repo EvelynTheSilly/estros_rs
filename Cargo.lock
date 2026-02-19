@@ -47,8 +47,18 @@ dependencies = [
  "aarch64-paging",
  "anyhow",
  "elf",
+ "limine",
  "qemu-exit",
  "tock-registers",
+]
+
+[[package]]
+name = "limine"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af6d2ee42712e7bd2c787365cd1dab06ef59a61becbf87bec7b32b970bd2594b"
+dependencies = [
+ "bitflags",
 ]
 
 [[package]]
