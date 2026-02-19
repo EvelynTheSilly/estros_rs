@@ -12,7 +12,9 @@ const DEVICE_MEM: Attributes = Attributes::ATTRIBUTE_INDEX_1
     .union(Attributes::ACCESSED)
     .union(Attributes::VALID)
     .union(Attributes::NON_GLOBAL); // Device memory usually shouldn't be Global anyway, but acceptable here.
+
 const MAIR: u64 = (0xFF << 0) | (0x00 << 8);
+
 use aarch64_paging::{
     descriptor::Attributes,
     idmap::IdMap,
@@ -25,7 +27,7 @@ use crate::println;
 
 pub fn init_mmu(device_ranges: Vec<&MemoryRegion>) -> IdMap {
     let mut memmap = IdMap::new(
-        1, //
+        0, //
         0, // 48 bit vadresses
         TranslationRegime::El1And0,
     );
