@@ -43,10 +43,13 @@
             cross.buildPackages.gcc
             cross.buildPackages.binutils
             (if system != "aarch64-darwin" then cross.buildPackages.gdb else null)
-            pkgs.qemu
-            pkgs.cmake
-            pkgs.mask
-            pkgs.cloc
+            qemu
+            cmake
+            just
+            just-lsp
+            just-formatter
+            cloc
+            mtools
           ];
           CARGO_UNSTABLE_JSON_TARGET_SPEC = "true";
           shellHook = ''
