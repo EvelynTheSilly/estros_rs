@@ -19,6 +19,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 use core::panic::PanicInfo;
 use elf::{endian::AnyEndian, segment::ProgramHeader};
+use limine::request::{RequestsEndMarker, RequestsStartMarker, StackSizeRequest};
 
 mod drivers;
 mod dtb;
@@ -29,6 +30,18 @@ mod syncronisation;
 mod uart;
 mod vectors;
 extern crate alloc;
+
+#[used]
+#[unsafe(link_section = ".requests")]
+static STACK: StackSizeRequest = StackSizeRequest::new().with_size(0x100000);
+
+/// Define the stand and end markers for Limine requests.
+#[used]
+#[unsafe(link_section = ".requests_start_marker")]
+static _START_MARKER: RequestsStartMarker = RequestsStartMarker::new();
+#[used]
+#[unsafe(link_section = ".requests_end_marker")]
+static _END_MARKER: RequestsEndMarker = RequestsEndMarker::new();
 
 core::arch::global_asm!(include_str!("boot.S"));
 

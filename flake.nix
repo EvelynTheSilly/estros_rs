@@ -50,7 +50,10 @@
             just-formatter
             cloc
             mtools
+            OVMF.fd
           ];
+          LIMINE_EFI_PATH = "${pkgs.limine-full}/share/limine/BOOTAA64.EFI";
+          BOOT_FIRMWARE_PATH = "${pkgs.OVMF.fd}/FV";
           CARGO_UNSTABLE_JSON_TARGET_SPEC = "true";
           shellHook = ''
             echo "AArch64 bare-metal dev shell ready!"

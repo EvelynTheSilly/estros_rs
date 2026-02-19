@@ -1,4 +1,11 @@
-qemuflags := "-M virt -cpu cortex-a57 -nographic -kernel ./build/kernel.elf -semihosting"
+qemuflags := "-M virt \
+    -cpu cortex-a57 \
+    -nographic \
+    -drive if=pflash,unit=0,format=raw,file=bin/OVMF_CODE.fd,readonly=on \
+    -drive if=pflash,unit=1,format=raw,file=bin/OVMF_VARS.fd \
+    -kernel ./build/kernel.elf \
+    -semihosting \
+"
 
 build_kernel_elf opt="debug":
     if [ -f "config.sh" ]; then \
@@ -28,9 +35,14 @@ build_img:
     mcopy -i build/disk.img build/kernel.elf ::/kernel.elf
     mcopy -i build/disk.img limine.conf ::/limine.conf
 
-build_init opt="debug" init="minimal_init":
-    cargo build --bin {{ init }} $( [ {{ opt }} = release ] && printf '%s' --release )
-    cp ./target/aarch64-none-custom/{{ opt }}/{{ init }} ./build/init.elf
+build_init opt="debug":
+    if [ -f "config.sh" ]; then \
+    source ./config.sh; \
+    else \
+    source ./exampleconfig.sh; \
+    fi 
+    cargo build --bin $INIT $( [ {{ opt }} = release ] && printf '%s' --release )
+    cp ./target/aarch64-none-custom/{{ opt }}/$INIT ./build/init.elf
 
 build:
     mkdir -p ./build
@@ -38,7 +50,17 @@ build:
     mkdir -p ./build
     just build_init
     just build_kernel_elf
+    just get_binary_blobs
     just build_img
+
+get_binary_blobs:
+    if [ -f "config.sh" ]; then \
+    source ./config.sh; \
+    else \
+    source ./exampleconfig.sh; \
+    fi 
+    cp $BOOT_FIRMWARE_PATH/OVMF_CODE.fd ./bin/OVMF_CODE.fd
+    cp $BOOT_FIRMWARE_PATH/OVMF_VARS.fd ./bin/OVMF_VARS.fd
 
 run:
     @echo "running vm"

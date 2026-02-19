@@ -1,3 +1,4 @@
 target/
 build/
 config.sh
+bin/
