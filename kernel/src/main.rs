@@ -20,7 +20,10 @@ use alloc::vec;
 use alloc::vec::Vec;
 use core::panic::PanicInfo;
 use elf::{endian::AnyEndian, segment::ProgramHeader};
-use limine::request::{RequestsEndMarker, RequestsStartMarker, StackSizeRequest};
+use limine::{
+    BaseRevision,
+    request::{RequestsEndMarker, RequestsStartMarker, StackSizeRequest},
+};
 
 mod drivers;
 mod dtb;
@@ -35,6 +38,9 @@ extern crate alloc;
 #[used]
 #[unsafe(link_section = ".requests")]
 static STACK: StackSizeRequest = StackSizeRequest::new().with_size(0x100000);
+
+#[used]
+static BASE_REVISION: BaseRevision = BaseRevision::new();
 
 /// Define the stand and end markers for Limine requests.
 #[used]
