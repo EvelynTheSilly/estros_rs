@@ -14,6 +14,7 @@
 #![deny(clippy::float_equality_without_abs)]
 #![warn(clippy::missing_const_for_fn)]
 
+use aarch64_cpu::asm::wfi;
 use aarch64_paging::paging::MemoryRegion;
 use alloc::vec;
 use alloc::vec::Vec;
@@ -49,9 +50,9 @@ core::arch::global_asm!(include_str!("boot.S"));
 #[allow(unreachable_code)] // rustc complains code isnt reachable when it very much is when qemu isnt enabled
 fn panic(info: &PanicInfo) -> ! {
     println!("KERNEL PANIC: {}", { info.message() });
-    #[cfg(feature = "qemu")]
-    drivers::semihosting::shutdown(1);
-    loop {}
+    loop {
+        wfi();
+    }
 }
 
 #[unsafe(no_mangle)]
@@ -60,27 +61,15 @@ pub extern "C" fn _kernel_entry(_dtb_addr: *mut u64) -> ! {
     unsafe {
         println!("booting estros...");
 
-        println!("initialising mmu");
-        // apparently we need to keep hold of it?
-        let _map = mem::mmu::init_mmu(vec![&MemoryRegion::new(0x0900_0000, 0x0900_1000)]);
+        let mut sctlr: u64;
+        core::arch::asm!(
+            "
+            mrs x0, sctlr_el1
+            ",
+            out("x0") sctlr
+        );
+        println!("{:b}", sctlr);
 
-        println!("loading init process elf");
-        let init = include_bytes!("../../build/init.elf");
-        let init_elf = elf::ElfBytes::<AnyEndian>::minimal_parse(init).unwrap();
-        println!("init elf {} bytes in size", init.len());
-        let headers: Vec<ProgramHeader> = init_elf
-            .segments() // actually gets the headers
-            .expect("init elf should have segments")
-            .iter()
-            .filter(|segment_header| segment_header.p_type == elf::abi::PT_LOAD) // filter to only the ones that should be loaded
-            .collect();
-        println!("{} load segments found", headers.len());
-        headers
-            .iter()
-            .for_each(|header| println!("{:x?} all segment data", header));
-        #[cfg(feature = "qemu")]
-        drivers::semihosting::shutdown(0);
-
-        panic!("reached end of init function and didnt find proper shutdown driver");
+        panic!("reached end of init function");
     };
 }

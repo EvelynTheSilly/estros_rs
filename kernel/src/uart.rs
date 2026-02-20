@@ -48,12 +48,12 @@ pub unsafe fn write_byte(char: u8) {
 #[macro_export]
 macro_rules! println {
     () => {
-        let _ = $crate::print!("\n");
+        let _ = $crate::print!("\n\r");
         ()
     };
     ($($arg:tt)*) => {{
         let _ = $crate::print!($($arg)*);
-        let _ = $crate::print!("\n");
+        let _ = $crate::print!("\n\r");
     }};
 }
 

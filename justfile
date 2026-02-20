@@ -1,9 +1,13 @@
 qemuflags := "-M virt \
     -cpu cortex-a57 \
-    -nographic \
-    -drive if=pflash,unit=0,format=raw,file=bin/OVMF_CODE.fd,readonly=on \
-    -drive if=pflash,unit=1,format=raw,file=bin/OVMF_VARS.fd \
-    -kernel ./build/kernel.elf \
+    -drive if=pflash,unit=0,format=raw,file=bin/AAVMF_CODE.fd,readonly=on \
+    -drive if=pflash,unit=1,format=raw,file=bin/AAVMF_VARS.fd \
+    -drive file=build/disk.img,format=raw \
+    -serial mon:stdio \
+    -device ramfb \
+	-device qemu-xhci \
+	-device usb-kbd \
+	-device usb-mouse \
     -semihosting \
 "
 
@@ -18,36 +22,46 @@ build_kernel_elf opt="debug":
     cp ./target/aarch64-none-custom/debug/kernel ./build/kernel.elf
 
 build_img:
-    # 1. Create a blank 64MB image file
+    # 1. Create a clean 64MB file
     dd if=/dev/zero of=build/disk.img bs=1M count=64
 
-    # 2. Format it as FAT32
-    mkfs.vfat -F 32 build/disk.img
+    # 2. Create the GPT table and the partition
+    # -o: Clear existing table (fresh start)
+    sgdisk -o build/disk.img
+    sgdisk -n 1:2048:0 -t 1:ef00 build/disk.img
 
-    # 3. Create the standard UEFI directory structure
-    mmd -i build/disk.img ::/EFI
-    mmd -i build/disk.img ::/EFI/BOOT
+    # 3. Create the FAT partition in a separate file (63MB)
+    dd if=/dev/zero of=build/part.fat bs=1M count=63
+    mkfs.vfat -F 32 build/part.fat
 
-    # 4. Copy the Limine UEFI binary (Rename it to the default boot name)
-    mcopy -i build/disk.img bin/BOOTAA64.EFI ::/EFI/BOOT/BOOTAA64.EFI
+    # 4. Fill the partition
+    mmd -i build/part.fat ::/EFI
+    mmd -i build/part.fat ::/EFI/BOOT
+    mcopy -i build/part.fat bin/BOOTAA64.EFI ::/EFI/BOOT/BOOTAA64.EFI
+    mcopy -i build/part.fat build/kernel.elf ::/kernel.elf
+    mcopy -i build/part.fat limine.conf ::/limine.conf
 
-    # 5. Copy your kernel and config to the root
-    mcopy -i build/disk.img build/kernel.elf ::/kernel.elf
-    mcopy -i build/disk.img limine.conf ::/limine.conf
+    # 5. Stitch it together
+    dd if=build/part.fat of=build/disk.img bs=1M seek=1 conv=notrunc
+
+    # 6. THE FIX: Relocate backup headers and verify
+    # -e: moves the backup GPT header to the actual end of the 64MB file
+    sgdisk -e build/disk.img
+    # -v: verify (should now say "No problems found")
+    sgdisk -v build/disk.img
 
 build_init opt="debug":
     if [ -f "config.sh" ]; then \
-    source ./config.sh; \
+    source ./config.sh;echo "found $INIT"; \
     else \
     source ./exampleconfig.sh; \
-    fi 
-    cargo build --bin $INIT $( [ {{ opt }} = release ] && printf '%s' --release )
+    fi; \
+    cargo build --bin $INIT $( [ {{ opt }} = release ] && printf '%s' --release ); \
     cp ./target/aarch64-none-custom/{{ opt }}/$INIT ./build/init.elf
 
 build:
-    mkdir -p ./build
-    rm -r ./build
-    mkdir -p ./build
+    just create_temp_dir ./bin
+    just create_temp_dir ./build
     just build_init
     just build_kernel_elf
     just get_binary_blobs
@@ -59,8 +73,13 @@ get_binary_blobs:
     else \
     source ./exampleconfig.sh; \
     fi 
-    cp $BOOT_FIRMWARE_PATH/OVMF_CODE.fd ./bin/OVMF_CODE.fd
-    cp $BOOT_FIRMWARE_PATH/OVMF_VARS.fd ./bin/OVMF_VARS.fd
+    cp $LIMINE_EFI_PATH ./bin/BOOTAA64.EFI
+    cp $BOOT_FIRMWARE_PATH/AAVMF_CODE.fd ./bin/AAVMF_CODE.fd
+    cp $BOOT_FIRMWARE_PATH/AAVMF_VARS.fd ./bin/AAVMF_VARS.fd
+    chmod +w ./bin/AAVMF_CODE.fd
+    truncate -s 64M bin/AAVMF_CODE.fd
+    chmod +w ./bin/AAVMF_VARS.fd
+    truncate -s 64M bin/AAVMF_VARS.fd
 
 run:
     @echo "running vm"
@@ -84,3 +103,8 @@ debug:
 
 gdb:
     aarch64-none-elf-gdb -ex "target remote :1234" -ex "symbol-file build/kernel.elf"
+
+create_temp_dir name:
+    mkdir -p {{ name }}
+    rm {{ name }} -rf 
+    mkdir -p {{ name }}
