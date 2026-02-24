@@ -15,10 +15,9 @@
 #![warn(clippy::missing_const_for_fn)]
 
 use aarch64_cpu::asm::wfi;
-use aarch64_paging::paging::MemoryRegion;
 use alloc::vec;
 use alloc::vec::Vec;
-use core::panic::PanicInfo;
+use core::{alloc::Layout, panic::PanicInfo};
 use elf::{endian::AnyEndian, segment::ProgramHeader};
 use limine::{
     BaseRevision,
@@ -27,6 +26,7 @@ use limine::{
 
 mod drivers;
 mod dtb;
+mod irqs;
 mod mem;
 mod rng;
 mod scheduler;
@@ -53,7 +53,6 @@ static _END_MARKER: RequestsEndMarker = RequestsEndMarker::new();
 core::arch::global_asm!(include_str!("boot.S"));
 
 #[panic_handler]
-#[allow(unreachable_code)] // rustc complains code isnt reachable when it very much is when qemu isnt enabled
 fn panic(info: &PanicInfo) -> ! {
     println!("KERNEL PANIC: {}", { info.message() });
     loop {
@@ -62,19 +61,14 @@ fn panic(info: &PanicInfo) -> ! {
 }
 
 #[unsafe(no_mangle)]
-#[allow(unreachable_code)] // rustc complains code isnt reachable when it very much is when qemu isnt enabled
+#[allow(unreachable_code)]
 pub extern "C" fn _kernel_entry(_dtb_addr: *mut u64) -> ! {
     unsafe {
         println!("booting estros...");
 
-        let mut sctlr: u64;
-        core::arch::asm!(
-            "
-            mrs x0, sctlr_el1
-            ",
-            out("x0") sctlr
-        );
-        println!("{:b}", sctlr);
+        let init = include_bytes!("../../build/init.elf");
+
+        println!("hello world");
 
         panic!("reached end of init function");
     };
