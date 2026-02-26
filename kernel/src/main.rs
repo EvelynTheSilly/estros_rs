@@ -1,6 +1,8 @@
 #![no_std]
 #![no_main]
 #![feature(macro_metavar_expr_concat)]
+#![feature(const_convert)]
+#![feature(const_trait_impl)]
 #![allow(unused_unsafe)]
 #![allow(
     clippy::doc_markdown,
@@ -67,8 +69,6 @@ pub extern "C" fn _kernel_entry(_dtb_addr: *mut u64) -> ! {
         println!("booting estros...");
 
         let init = include_bytes!("../../build/init.elf");
-
-        println!("hello world");
 
         panic!("reached end of init function");
     };

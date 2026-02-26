@@ -1,8 +1,5 @@
 #![allow(dead_code)]
-use crate::{
-    rng::implementations::xorshift::XORShiftRng,
-    syncronisation::{GlobalSharedLock, NullLock},
-};
+use crate::{rng::implementations::xorshift::XORShiftRng, syncronisation::GlobalSharedLock};
 
 mod implementations;
 
@@ -37,4 +34,4 @@ pub trait Rng {
     }
 }
 
-pub static RNG: GlobalSharedLock<XORShiftRng> = NullLock::new(XORShiftRng::new(69420));
+pub static RNG: GlobalSharedLock<XORShiftRng> = GlobalSharedLock::new(XORShiftRng::new(69420));
