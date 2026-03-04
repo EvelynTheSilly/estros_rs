@@ -1,17 +1,22 @@
-#![allow(unused)]
+#![allow(dead_code)]
 
 use crate::rng::Rng;
 use crate::syncronisation::Mutex;
-use crate::vectors::cpu_state;
+use crate::vectors::cpu_state::State;
 use aarch64_paging::linearmap::LinearMap;
 use alloc::alloc::Layout;
 use alloc::vec;
 use alloc::{collections::btree_map::BTreeMap, vec::Vec};
-use anyhow::{Result, anyhow, bail};
+use anyhow::{Result, anyhow};
 use elf::ElfBytes;
 use elf::abi::PT_LOAD;
 use elf::endian::AnyEndian;
 use elf::segment::ProgramHeader;
+use process::Process;
+use threads::SchedulerThread;
+
+mod process;
+mod threads;
 
 pub struct ProcessManager<Scheduler>
 where
@@ -27,7 +32,9 @@ where
     pub fn schedule(&mut self) -> Result<SchedulerThread> {
         Scheduler::schedule(self)
     }
-    pub fn store_thread(&mut self) {}
+    pub fn report_thread_state(&mut self, pid: u64, tid: u64, state: State) -> Result<()> {
+        Ok(())
+    }
     ///returns a PID
     pub fn launch_process(&mut self, elf: ElfBytes<AnyEndian>) -> Result<u64> {
         let pheaders = elf.segments().ok_or(anyhow!("no valid headers"))?;
@@ -56,10 +63,6 @@ where
     }
 }
 
-pub struct SegmentAllocation {
-    header: ProgramHeader,
-    allocation: *mut u8,
-}
 impl Drop for SegmentAllocation {
     fn drop(&mut self) {
         /// SAFETY: layout cant be invalid
@@ -71,17 +74,6 @@ impl Drop for SegmentAllocation {
             );
         }
     }
-}
-
-pub struct Process {
-    segments: Vec<SegmentAllocation>,
-    memory_map: LinearMap,
-    threads: Vec<SchedulerThread>,
-}
-
-#[derive(Clone)]
-pub struct SchedulerThread {
-    state: cpu_state::State,
 }
 
 pub struct StupidScheduler;
