@@ -17,15 +17,16 @@
 #![warn(clippy::missing_const_for_fn)]
 
 use aarch64_cpu::asm::wfi;
-use alloc::vec;
-use alloc::vec::Vec;
-use core::{alloc::Layout, panic::PanicInfo};
-use elf::{endian::AnyEndian, segment::ProgramHeader};
+use core::{arch::asm, hint::spin_loop, panic::PanicInfo};
 use limine::{
     BaseRevision,
-    request::{RequestsEndMarker, RequestsStartMarker, StackSizeRequest},
+    mp::Cpu,
+    request::{MpRequest, RequestsEndMarker, RequestsStartMarker, StackSizeRequest},
 };
 
+use crate::vectors::cpu_state::State;
+
+mod boot;
 mod drivers;
 mod dtb;
 mod irqs;
@@ -38,11 +39,15 @@ mod vectors;
 extern crate alloc;
 
 #[used]
-#[unsafe(link_section = ".requests")]
-static STACK: StackSizeRequest = StackSizeRequest::new().with_size(0x100000);
+static BASE_REVISION: BaseRevision = BaseRevision::new();
 
 #[used]
-static BASE_REVISION: BaseRevision = BaseRevision::new();
+#[unsafe(link_section = ".requests")]
+static PROCESSORS: MpRequest = MpRequest::new();
+
+#[used]
+#[unsafe(link_section = ".requests")]
+static STACK: StackSizeRequest = StackSizeRequest::new().with_size(0x100000);
 
 /// Define the stand and end markers for Limine requests.
 #[used]
@@ -51,8 +56,6 @@ static _START_MARKER: RequestsStartMarker = RequestsStartMarker::new();
 #[used]
 #[unsafe(link_section = ".requests_end_marker")]
 static _END_MARKER: RequestsEndMarker = RequestsEndMarker::new();
-
-core::arch::global_asm!(include_str!("boot.S"));
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
@@ -64,12 +67,32 @@ fn panic(info: &PanicInfo) -> ! {
 
 #[unsafe(no_mangle)]
 #[allow(unreachable_code)]
-pub extern "C" fn _kernel_entry(_dtb_addr: *mut u64) -> ! {
+pub extern "C" fn kernel_init() {
     unsafe {
         println!("booting estros...");
 
         let init = include_bytes!("../../build/init.elf");
-
-        panic!("reached end of init function");
     };
+}
+
+extern "C" fn get_init_process(initial_thread_state: *mut State) {
+    unsafe {
+        // dummy state
+        *initial_thread_state = State {
+            x: [
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+                23, 24, 25, 26, 27, 28, 29, 30,
+            ],
+        }
+    }
+}
+
+unsafe extern "C" fn core_init(cpu: &Cpu) -> ! {
+    unsafe {
+        core::ptr::write_volatile(0x0900_0000 as *mut u8, 67);
+    }
+    println!("cpu init: {:#?}", cpu.id);
+    loop {
+        spin_loop();
+    }
 }

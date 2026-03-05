@@ -3,7 +3,7 @@ use core::arch::global_asm;
 #[repr(C)]
 #[derive(Debug, Default, Clone)]
 pub struct State {
-    x: [u64; 31],
+    pub x: [u64; 31],
 }
 
 global_asm!(
