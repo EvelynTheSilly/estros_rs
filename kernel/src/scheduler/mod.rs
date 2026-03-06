@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use crate::rng::Rng;
-use crate::syncronisation::Mutex;
+use crate::syncronisation::{GlobalSharedLock, Mutex};
 use crate::vectors::cpu_state::State;
 use aarch64_paging::linearmap::LinearMap;
 use alloc::{collections::btree_map::BTreeMap, vec::Vec};
@@ -25,8 +25,14 @@ where
 }
 impl<Scheduler> ProcessManager<Scheduler>
 where
-    Scheduler: CpuScheduler,
+    Scheduler: CpuScheduler + [const] CpuSchedulerNew,
 {
+    pub const fn new() -> Self {
+        ProcessManager {
+            scheduler: Scheduler::new(),
+            processes: BTreeMap::new(),
+        }
+    }
     pub fn schedule(&mut self) -> Result<SchedulerThread> {
         Scheduler::schedule(self)
     }
@@ -70,10 +76,21 @@ where
     }
 }
 
-pub struct StupidScheduler;
-
 pub trait CpuScheduler: Sized {
     fn schedule(manager: &mut ProcessManager<Self>) -> Result<SchedulerThread>;
+}
+
+const trait CpuSchedulerNew: Sized {
+    fn new() -> Self;
+}
+
+#[derive(Default)]
+pub struct StupidScheduler;
+
+impl const CpuSchedulerNew for StupidScheduler {
+    fn new() -> Self {
+        StupidScheduler
+    }
 }
 
 impl CpuScheduler for StupidScheduler {
@@ -81,3 +98,6 @@ impl CpuScheduler for StupidScheduler {
         bail!("unimplemented");
     }
 }
+
+static mut PROCESS_MANAGER: GlobalSharedLock<ProcessManager<StupidScheduler>> =
+    GlobalSharedLock::new(ProcessManager::new());
