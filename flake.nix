@@ -53,6 +53,7 @@
             pkgs.pkgsCross.aarch64-multiplatform.OVMF.fd
             OVMF.fd
             gptfdisk
+            python313Packages.virt-firmware
           ];
           LIMINE_EFI_PATH = "${pkgs.limine-full}/share/limine/BOOTAA64.EFI";
           BOOT_FIRMWARE_PATH = "${pkgs.pkgsCross.aarch64-multiplatform.OVMF.fd}/FV";
