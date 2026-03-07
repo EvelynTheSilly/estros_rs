@@ -80,6 +80,7 @@ get_binary_blobs:
     truncate -s 64M bin/AAVMF_CODE.fd
     chmod +w ./bin/AAVMF_VARS.fd
     truncate -s 64M bin/AAVMF_VARS.fd
+    virt-fw-vars --input bin/AAVMF_VARS.fd --set-json bootloader_settings.json --output bin/AAVMF_VARS.fd
 
 run:
     @echo "running vm"
