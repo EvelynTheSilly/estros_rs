@@ -1,4 +1,5 @@
 pub mod cpu_state;
+mod handlers;
 
 macro_rules! panicking_function {
     ($func_name:ident) => {
@@ -51,11 +52,6 @@ macro_rules! asm_vector_table {
     };
 }
 
-panicking_vector_handler_block!(el1_sp0);
-panicking_vector_handler_block!(el1_spx);
-panicking_vector_handler_block!(el0_aarch64);
-panicking_vector_handler_block!(el0_aarch32);
-
 asm_vector_table!(
     el1_sp0_sync,
     el1_sp0_irq,
@@ -74,3 +70,10 @@ asm_vector_table!(
     el0_aarch32_fiq,
     el0_aarch32_serror
 );
+
+panicking_function!(el1_sp0_irq_handler);
+panicking_function!(el1_sp0_fiq_handler);
+panicking_function!(el1_sp0_serror_handler);
+panicking_vector_handler_block!(el1_spx);
+panicking_vector_handler_block!(el0_aarch64);
+panicking_vector_handler_block!(el0_aarch32);
