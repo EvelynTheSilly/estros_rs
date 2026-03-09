@@ -18,8 +18,8 @@ core::arch::global_asm!(
         bl {get_init_process}
         bl load_cpu_state
         ldr x30, [sp], #8
-        add sp, sp, {cpu_state_size}
-        udf #0
+        eret
+        //udf #0
         b .                                      // hang forever
         
     enable_fpu:
