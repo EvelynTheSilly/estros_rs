@@ -1,17 +1,16 @@
-qemuflags := """
-    -M virt 
-    -cpu cortex-a57 
-    -drive if=pflash,unit=0,format=raw,file=bin/AAVMF_CODE.fd,readonly=on 
-    -drive if=pflash,unit=1,format=raw,file=bin/AAVMF_VARS.fd 
-    -drive file=build/disk.img,format=raw 
-    -serial mon:stdio 
-    -device ramfb 
-	-device qemu-xhci 
-	-device usb-kbd 
-	-device usb-mouse 
-	-smp 4 
-    -semihosting 
-"""
+qemuflags := " -M virt \
+    -cpu cortex-a57 \
+    -drive if=pflash,unit=0,format=raw,file=bin/AAVMF_CODE.fd,readonly=on \
+    -drive if=pflash,unit=1,format=raw,file=bin/AAVMF_VARS.fd \
+    -drive file=build/disk.img,format=raw \
+    -serial mon:stdio \
+    -device ramfb \
+	-device qemu-xhci \
+	-device usb-kbd \
+	-device usb-mouse \
+	-smp 4 \
+    -semihosting \
+"
 
 build_kernel_elf opt="debug":
     if [ -f "config.sh" ]; then \
