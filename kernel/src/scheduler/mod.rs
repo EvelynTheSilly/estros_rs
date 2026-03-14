@@ -18,5 +18,5 @@ pub trait CpuScheduler: Sized {
     fn schedule(&mut self) -> Result<SchedulerThread>;
 }
 
-static mut PROCESS_MANAGER: GlobalSharedLock<GlobalScheduler> =
+pub static PROCESS_MANAGER: GlobalSharedLock<GlobalScheduler> =
     GlobalSharedLock::new(GlobalScheduler::new());

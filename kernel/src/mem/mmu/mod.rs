@@ -8,7 +8,7 @@ const MEGABYTE: u64 = KILOBYTE * 1048;
 #[allow(dead_code)]
 const GIGABYTE: u64 = MEGABYTE * 1048;
 
-const NORMAL_CACHEABLE: Attributes =
+pub const NORMAL_CACHEABLE: Attributes =
     Attributes::ATTRIBUTE_INDEX_0.union(Attributes::INNER_SHAREABLE);
 const DEVICE_MEM: Attributes = Attributes::ATTRIBUTE_INDEX_1
     .union(Attributes::ACCESSED)

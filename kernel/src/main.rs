@@ -17,15 +17,19 @@
 #![deny(clippy::float_equality_without_abs)]
 #![warn(clippy::missing_const_for_fn)]
 
+use crate::{
+    scheduler::{CpuScheduler, PROCESS_MANAGER},
+    syncronisation::Mutex,
+    vectors::cpu_state::State,
+};
 use aarch64_cpu::asm::wfi;
-use core::{arch::asm, hint::spin_loop, panic::PanicInfo};
+use core::{hint::spin_loop, panic::PanicInfo};
+use elf::{ElfBytes, endian::AnyEndian};
 use limine::{
     BaseRevision,
     mp::Cpu,
     request::{MpRequest, RequestsEndMarker, RequestsStartMarker, StackSizeRequest},
 };
-
-use crate::vectors::cpu_state::State;
 
 mod boot;
 mod drivers;
@@ -71,20 +75,21 @@ fn panic(info: &PanicInfo) -> ! {
 pub extern "C" fn kernel_init() {
     unsafe {
         println!("booting estros...");
-
+        println!("loading init...");
         let init = include_bytes!("../../build/init.elf");
+        let init_elf = ElfBytes::<AnyEndian>::minimal_parse(init).expect("INVALID INIT FILE");
+        PROCESS_MANAGER
+            .lock(|manager| manager.launch_process(init_elf))
+            .expect("failed to launch init")
     };
-}
-
-fn init() {
-    println!("test");
+    panic!("end of init reached")
 }
 
 extern "C" fn get_init_process(initial_thread_state: *mut State) {
     unsafe {
         // dummy state
         *initial_thread_state = State {
-            elr: (init as fn() as *const () as u64) - 0xFFFFFFFF00000000,
+            elr: 0,
             spsr: 0,
             x: [
                 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
