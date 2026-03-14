@@ -19,7 +19,7 @@ core::arch::global_asm!(
         bl load_cpu_state
         ldr x30, [sp], #8
         eret
-        b .                                      // hang forever
+        b .
         
     enable_fpu:
         mrs x0, CPACR_EL1
