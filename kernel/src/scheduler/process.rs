@@ -2,13 +2,13 @@ use crate::{
     mem::{mmu::NORMAL_CACHEABLE, paging::ArbitraryTranslation},
     scheduler::threads::SchedulerThread,
 };
-use aarch64_paging::{descriptor::Attributes, paging::RootTable};
+use aarch64_paging::{Mapping, descriptor::Attributes};
 use core::alloc::Layout;
 use elf::segment::ProgramHeader;
 
 pub struct Process {
     //pub segments: Vec<SegmentAllocation>,
-    pub memory_map: RootTable<ArbitraryTranslation>,
+    pub memory_map: Mapping<ArbitraryTranslation>,
     pub thread: SchedulerThread, //pub threads: BTreeMap<u64, SchedulerThread>,
 }
 pub struct SegmentAllocation {
@@ -35,9 +35,6 @@ pub fn elf_flags_to_mmu_constrains(flags: u32) -> Attributes {
     let mut acc = NORMAL_CACHEABLE | Attributes::PXN;
     if !exec {
         acc |= Attributes::UXN;
-    }
-    if !write {
-        acc |= Attributes::READ_ONLY;
     }
     if !write {
         acc |= Attributes::READ_ONLY;

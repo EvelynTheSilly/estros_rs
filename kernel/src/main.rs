@@ -23,12 +23,12 @@ use crate::{
     vectors::cpu_state::State,
 };
 use aarch64_cpu::asm::wfi;
-use core::{hint::spin_loop, panic::PanicInfo};
+use core::{arch::asm, hint::spin_loop, panic::PanicInfo};
 use elf::{ElfBytes, endian::AnyEndian};
 use limine::{
     BaseRevision,
     mp::Cpu,
-    request::{MpRequest, RequestsEndMarker, RequestsStartMarker, StackSizeRequest},
+    request::{HhdmRequest, MpRequest, RequestsEndMarker, RequestsStartMarker, StackSizeRequest},
 };
 
 mod boot;
@@ -53,6 +53,10 @@ static PROCESSORS: MpRequest = MpRequest::new();
 #[used]
 #[unsafe(link_section = ".requests")]
 static STACK: StackSizeRequest = StackSizeRequest::new().with_size(0x100000);
+
+#[used]
+#[unsafe(link_section = ".requests")]
+static HDDM: HhdmRequest = HhdmRequest::new();
 
 /// Define the stand and end markers for Limine requests.
 #[used]
@@ -79,18 +83,23 @@ pub extern "C" fn kernel_init() {
         let init = include_bytes!("../../build/init.elf");
         let init_elf = ElfBytes::<AnyEndian>::minimal_parse(init).expect("INVALID INIT FILE");
         println!("launching process");
-        PROCESS_MANAGER
+        let init_pid = PROCESS_MANAGER
             .lock(|manager| manager.launch_process(init_elf))
-            .expect("failed to launch init")
+            .expect("failed to launch init");
+        println!("launched pid {}", init_pid);
     };
-    panic!("end of init reached")
 }
 
 extern "C" fn get_init_process(initial_thread_state: *mut State) {
     unsafe {
-        // dummy state
-        *initial_thread_state = PROCESS_MANAGER.lock(|manager| manager.schedule().unwrap().state);
+        let thread = PROCESS_MANAGER.lock(|manager| manager.schedule().unwrap());
+        *initial_thread_state = thread.state;
+        asm!("    tlbi vmalle1");
+        asm!("    dsb sy");
+        asm!("    isb");
+        //println!("the line after activating my mem map");
     }
+    //println!("loaded init");
 }
 
 unsafe extern "C" fn core_init(cpu: &Cpu) -> ! {

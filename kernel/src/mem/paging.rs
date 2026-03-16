@@ -22,7 +22,7 @@ impl aarch64_paging::paging::Translation for ArbitraryTranslation {
             if vaddr.is_null() {
                 handle_alloc_error(layout)
             }
-            paddr = PhysicalAddress(vaddr as usize - 0xFFFFFFFF00000000);
+            paddr = PhysicalAddress(vaddr as usize - 0xFFFFFFFF80000000 + 0x40000000);
         }
 
         (
@@ -47,12 +47,17 @@ impl aarch64_paging::paging::Translation for ArbitraryTranslation {
         &self,
         pa: aarch64_paging::descriptor::PhysicalAddress,
     ) -> core::ptr::NonNull<aarch64_paging::paging::PageTable> {
-        NonNull::new((pa.0 + 0xFFFFFFFF00000000) as *mut PageTable)
+        NonNull::new((pa.0 + 0xFFFFFFFF80000000 - 0x40000000) as *mut PageTable)
             .expect("invalid physical page address recieved")
     }
 }
 
 pub fn kernel_virtual_to_physical(ptr: *mut u8) -> *mut u8 {
+    println!(
+        "v_to_p tranlation {:x} -> {:x}",
+        ptr as usize,
+        (ptr as usize - 0xFFFFFFFF80000000 + 0x40000000)
+    );
     // SAFETY: unchecked cast, on the user to validate their pointers are in valid kernel memory
-    (ptr as usize - 0xFFFFFFFF00000000) as *mut u8
+    (ptr as usize - 0xFFFFFFFF80000000 + 0x40000000) as *mut u8
 }

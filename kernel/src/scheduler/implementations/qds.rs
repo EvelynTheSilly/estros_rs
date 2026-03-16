@@ -11,12 +11,13 @@ use crate::{
     vectors::cpu_state::State,
 };
 use aarch64_paging::{
+    Mapping,
     descriptor::PhysicalAddress,
-    paging::{Constraints, MemoryRegion, PAGE_SIZE, RootTable},
+    paging::{Constraints, MemoryRegion, PAGE_SIZE},
 };
 use alloc::{alloc::alloc, collections::btree_map::BTreeMap};
-use anyhow::{Result, anyhow, bail};
-use core::alloc::Layout;
+use anyhow::{Ok, Result, anyhow, bail};
+use core::{alloc::Layout, arch::asm};
 use elf::{ElfBytes, abi::PT_LOAD, endian::AnyEndian};
 
 /// Quick and Dirty Scheduler
@@ -35,15 +36,21 @@ impl QDScheduler {
 
 impl CpuScheduler for QDScheduler {
     fn schedule(&mut self) -> Result<SchedulerThread> {
-        bail!("TODO")
+        let process = self.processes.get(&0).unwrap();
+        unsafe {
+            println!("the line before activating my mem map");
+            process.memory_map.activate();
+            asm!("dsb ish", "isb", options(preserves_flags, nostack));
+        }
+        Ok(process.thread.clone())
     }
     ///returns a PID
     fn launch_process(&mut self, elf: ElfBytes<AnyEndian>) -> Result<u64> {
         let pheaders = elf.segments().ok_or(anyhow!("no valid headers"))?;
         let load_headers = pheaders.iter().filter(|header| header.p_type == PT_LOAD);
-        //let mut segments = Vec::with_capacity(load_headers.count());
-        let mut memmap = RootTable::new(
+        let mut memmap = Mapping::new(
             ArbitraryTranslation,
+            0,
             0,
             aarch64_paging::paging::TranslationRegime::El1And0,
             aarch64_paging::paging::VaRange::Lower,
@@ -55,14 +62,13 @@ impl CpuScheduler for QDScheduler {
                 return;
             }
             let allocation;
-            // safety: this is unsafe, dont care, MORE UNSAFE!
+            // safety: this is unsafe, and leaks memory after process death, TODO: fix
             unsafe {
                 let size = header.p_memsz as usize;
                 let layout = Layout::from_size_align(size, PAGE_SIZE).unwrap();
                 allocation = alloc(layout);
             }
-            // i too am in this episode.
-            #[allow(unreachable_code)]
+            //TODO: memcpy from elf file to allocation
             memmap
                 .map_range(
                     &MemoryRegion::new(
@@ -78,17 +84,37 @@ impl CpuScheduler for QDScheduler {
         });
         println!("mapped all headers");
         let mut pid = crate::rng::RNG.lock(|rng| rng.rand_u64());
-        while !self.processes.contains_key(&pid) {
-            pid = crate::rng::RNG.lock(|rng| rng.rand_u64());
-        }
+        //while !self.processes.contains_key(&pid) {
+        //    pid = crate::rng::RNG.lock(|rng| rng.rand_u64());
+        //}
         pid = 0;
+        let common_data = elf.find_common_data().unwrap();
+        println!("common data gotten");
+        let symtab = common_data.symtab.unwrap();
+        println!("got dynsyms");
+        let strtab = common_data.symtab_strs.unwrap();
+        println!("strtab gotten");
+        let name = "_start";
+        let start_sym = symtab
+            .iter()
+            .find(|symbol| {
+                let sym_name = strtab.get(symbol.st_name as usize).unwrap();
+                sym_name == name
+            })
+            .unwrap();
+        let start_address = start_sym.st_value;
+
+        println!("_start found");
         self.processes.insert(
             pid,
             Process {
                 //segments: segments,
                 memory_map: memmap,
                 thread: SchedulerThread {
-                    state: State::default(),
+                    state: State {
+                        elr: start_address,
+                        ..Default::default()
+                    },
                 },
             },
         );
