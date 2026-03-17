@@ -57,7 +57,6 @@ impl CpuScheduler for QDScheduler {
         );
         #[allow(unreachable_code)]
         load_headers.for_each(|header| {
-            println!("loading header {:?}", header);
             if header.p_memsz == 0 {
                 return;
             }
@@ -80,7 +79,6 @@ impl CpuScheduler for QDScheduler {
                     Constraints::empty(),
                 )
                 .expect("idk man. TODO probably handle this error idk");
-            println!("mapped a full header")
         });
         println!("mapped all headers");
         let mut pid = crate::rng::RNG.lock(|rng| rng.rand_u64());
@@ -89,11 +87,8 @@ impl CpuScheduler for QDScheduler {
         //}
         pid = 0;
         let common_data = elf.find_common_data().unwrap();
-        println!("common data gotten");
         let symtab = common_data.symtab.unwrap();
-        println!("got dynsyms");
         let strtab = common_data.symtab_strs.unwrap();
-        println!("strtab gotten");
         let name = "_start";
         let start_sym = symtab
             .iter()
@@ -104,7 +99,6 @@ impl CpuScheduler for QDScheduler {
             .unwrap();
         let start_address = start_sym.st_value;
 
-        println!("_start found");
         self.processes.insert(
             pid,
             Process {
