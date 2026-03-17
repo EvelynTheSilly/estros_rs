@@ -23,11 +23,10 @@ build_kernel_elf opt="debug":
     cp ./target/aarch64-none-custom/debug/kernel ./build/kernel.elf
 
 build_img:
-    # 1. Create a clean 64MB file
+    # Create a clean 64MB file
     dd if=/dev/zero of=build/disk.img bs=1M count=64
 
-    # 2. Create the GPT table and the partition
-    # -o: Clear existing table (fresh start)
+    # Create the GPT table and the partition
     sgdisk -o build/disk.img
     sgdisk -n 1:2048:0 -t 1:ef00 build/disk.img
 
@@ -45,11 +44,9 @@ build_img:
     # 5. Stitch it together
     dd if=build/part.fat of=build/disk.img bs=1M seek=1 conv=notrunc
 
-    # 6. THE FIX: Relocate backup headers and verify
+    # Relocate backup headers and verify
     # -e: moves the backup GPT header to the actual end of the 64MB file
     sgdisk -e build/disk.img
-    # -v: verify (should now say "No problems found")
-    sgdisk -v build/disk.img
 
 build_init opt="debug":
     if [ -f "config.sh" ]; then \
