@@ -60,11 +60,11 @@ build_init opt="debug":
     cargo build --bin $INIT $( [ {{ opt }} = release ] && printf '%s' --release ); \
     cp ./target/aarch64-none-custom/{{ opt }}/$INIT ./build/init.elf
 
-build:
+build opt="debug":
     just create_temp_dir ./bin
     just create_temp_dir ./build
     just build_init
-    just build_kernel_elf
+    just build_kernel_elf {{ opt }}
     just get_binary_blobs
     just build_img
 
@@ -90,8 +90,8 @@ run:
     @echo ""
     qemu-system-aarch64 {{ qemuflags }}
 
-buildrun:
-    just build
+buildrun opt="debug":
+    just build {{ opt }}
     just run
 
 debug:
@@ -104,10 +104,10 @@ debug:
 gdb:
     aarch64-none-elf-gdb -ex "target remote :1234" 
 
-fulldebug:
+fulldebug opt="debug":
     #! /usr/bin/env nix-shell
     #! nix-shell -i bash -p bash
-    just build
+    just build {{ opt }}
     alacritty -e bash -c "just gdb" &
     qemu-system-aarch64 {{ qemuflags }} -S -s
     kill $!
