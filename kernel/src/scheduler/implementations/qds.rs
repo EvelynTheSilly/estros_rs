@@ -17,7 +17,7 @@ use aarch64_paging::{
 };
 use alloc::{alloc::alloc, collections::btree_map::BTreeMap};
 use anyhow::{Ok, Result, anyhow, bail};
-use core::{alloc::Layout, arch::asm};
+use core::alloc::Layout;
 use elf::{ElfBytes, abi::PT_LOAD, endian::AnyEndian};
 
 /// Quick and Dirty Scheduler
@@ -38,9 +38,11 @@ impl CpuScheduler for QDScheduler {
     fn schedule(&mut self) -> Result<SchedulerThread> {
         let process = self.processes.get(&0).unwrap();
         unsafe {
-            println!("the line before activating my mem map");
-            process.memory_map.activate();
-            asm!("dsb ish", "isb", options(preserves_flags, nostack));
+            println!("activating memmap {:#?}", process.memory_map);
+            println!(
+                "location of previous ttbr0: {}",
+                process.memory_map.activate()
+            );
         }
         Ok(process.thread.clone())
     }
@@ -55,7 +57,6 @@ impl CpuScheduler for QDScheduler {
             aarch64_paging::paging::TranslationRegime::El1And0,
             aarch64_paging::paging::VaRange::Lower,
         );
-        #[allow(unreachable_code)]
         load_headers.for_each(|header| {
             if header.p_memsz == 0 {
                 return;
@@ -67,6 +68,15 @@ impl CpuScheduler for QDScheduler {
                 let layout = Layout::from_size_align(size, PAGE_SIZE).unwrap();
                 allocation = alloc(layout);
             }
+            println!(
+                "va range {} \n pa {:} dest va {:x}",
+                &MemoryRegion::new(
+                    header.p_vaddr as usize,
+                    (header.p_vaddr + header.p_memsz) as usize,
+                ),
+                PhysicalAddress(kernel_virtual_to_physical(allocation) as usize),
+                allocation as usize
+            );
             //TODO: memcpy from elf file to allocation
             memmap
                 .map_range(
