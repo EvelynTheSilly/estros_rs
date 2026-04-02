@@ -2,6 +2,7 @@ use aarch64_paging::{descriptor::PhysicalAddress, paging::PageTable};
 use alloc::alloc::{Layout, dealloc, handle_alloc_error};
 use core::ptr::NonNull;
 
+#[derive(Debug)]
 pub struct ArbitraryTranslation;
 
 impl aarch64_paging::paging::Translation for ArbitraryTranslation {
@@ -39,7 +40,6 @@ impl aarch64_paging::paging::Translation for ArbitraryTranslation {
         unsafe {
             dealloc(page_table.as_ptr() as *mut u8, Layout::new::<PageTable>());
         }
-        todo!()
     }
     fn physical_to_virtual(
         &self,

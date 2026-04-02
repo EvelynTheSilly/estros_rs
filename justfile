@@ -8,7 +8,6 @@ qemuflags := " -M virt \
 	-device qemu-xhci \
 	-device usb-kbd \
 	-device usb-mouse \
-	-smp 4 \
     -semihosting \
 "
 
