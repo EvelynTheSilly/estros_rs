@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-const UART_BASE: u64 = 0x0900_0000;
+const UART_BASE: u64 = 0xFFFF_0000_0900_0000;
 /// Data register (read/write)
 const UART_DATA_REGISTER: *mut u8 = UART_BASE as *mut u8;
 /// Flag register
