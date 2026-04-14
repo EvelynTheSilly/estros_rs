@@ -1,5 +1,5 @@
 # show current ARM EL
-define show_el
+define el
   set $el = (($cpsr >> 2) & 3)
   printf "Current EL: EL%d\n", $el
 end
@@ -14,6 +14,7 @@ define elr_disas
 end
 
 symbol-file build/kernel.elf
+add-symbol-file build/init.elf
 b el1_sp0_sync
 b el1_sp0_irq
 b el1_sp0_fiq
@@ -37,3 +38,4 @@ elr_disas
 end
 
 b kernel::kernel_init
+b kernel::get_init_process
