@@ -2,6 +2,7 @@
 #![no_main]
 #![feature(macro_metavar_expr_concat)]
 #![feature(const_convert)]
+#![feature(likely_unlikely)]
 #![feature(const_trait_impl)]
 #![feature(const_default)]
 #![allow(unused_unsafe)]

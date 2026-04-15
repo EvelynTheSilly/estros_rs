@@ -1,7 +1,7 @@
 use crate::syncronisation::Mutex;
 use core::{
     cell::UnsafeCell,
-    hint::spin_loop,
+    hint::{spin_loop, unlikely},
     sync::atomic::{AtomicBool, Ordering},
 };
 
@@ -29,11 +29,11 @@ impl<T> Mutex for SpinLock<T> {
     type Data = T;
     fn lock<'a, R>(&'a self, f: impl FnOnce(&'a mut Self::Data) -> R) -> R {
         loop {
-            if self
-                .lock
-                .compare_exchange_weak(false, true, Ordering::Acquire, Ordering::Relaxed)
-                .is_ok()
-            {
+            if unlikely(
+                self.lock
+                    .compare_exchange_weak(false, true, Ordering::Acquire, Ordering::Relaxed)
+                    .is_ok(),
+            ) {
                 let data = unsafe { &mut *self.data.get() };
                 let r = f(data);
                 self.lock.store(false, Ordering::Release);
