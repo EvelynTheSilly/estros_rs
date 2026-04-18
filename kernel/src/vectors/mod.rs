@@ -6,10 +6,24 @@ macro_rules! panicking_function {
         #[unsafe(no_mangle)]
         extern "C" fn $func_name(state: &mut cpu_state::State) {
             // The `stringify!` macro converts an `ident` into a string.
+            use core::arch::asm;
+            let (mut esr, mut elr) = (0, 0);
+            unsafe {
+                asm!(
+                    "
+                    mrs {0:x}, esr_el1
+                    mrs {1:x}, elr_el1
+                    ",
+                    out(reg) esr,
+                    out(reg) elr,
+                );
+            }
             panic!(
-                "{} triggered\n state dump \n{:x?}",
+                "{} triggered\n state dump \n{:x?}\nesr: 0x{:x}, elr: 0x{:x}",
                 stringify!($func_name),
-                state
+                state,
+                esr,
+                elr
             );
         }
     };
