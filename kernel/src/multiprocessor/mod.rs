@@ -11,8 +11,9 @@ static PROCESSORS: MpRequest = MpRequest::new();
 unsafe extern "C" fn core_entry(cpu: &Cpu) -> ! {
     naked_asm!(
         "
-        bl core_init
-        "
+        bl {}
+        ", 
+        sym core_init
     );
 }
 
@@ -31,7 +32,6 @@ pub fn mp_init() -> Result<()> {
 }
 
 #[allow(unused)] // its used in the assembly
-#[unsafe(no_mangle)]
 unsafe extern "C" fn core_init(cpu: &Cpu) -> ! {
     unsafe {
         core::ptr::write_volatile(0xFFFF_0000_0900_0000 as *mut u8, 67);

@@ -19,17 +19,17 @@
 #![warn(clippy::missing_const_for_fn)]
 
 use crate::{
+    multiprocessor::mp_init,
     scheduler::{CpuScheduler, PROCESS_MANAGER},
     syncronisation::Mutex,
     vectors::cpu_state::State,
 };
 use aarch64_cpu::asm::wfi;
-use core::{hint::spin_loop, panic::PanicInfo};
+use core::{arch::asm, panic::PanicInfo};
 use elf::{ElfBytes, endian::AnyEndian};
 use limine::{
     BaseRevision,
-    mp::Cpu,
-    request::{HhdmRequest, MpRequest, RequestsEndMarker, RequestsStartMarker, StackSizeRequest},
+    request::{HhdmRequest, RequestsEndMarker, RequestsStartMarker, StackSizeRequest},
 };
 
 mod boot;
@@ -37,6 +37,7 @@ mod drivers;
 mod dtb;
 mod irqs;
 mod mem;
+mod multiprocessor;
 mod rng;
 mod scheduler;
 mod syncronisation;
@@ -46,10 +47,6 @@ extern crate alloc;
 
 #[used]
 static BASE_REVISION: BaseRevision = BaseRevision::new();
-
-#[used]
-#[unsafe(link_section = ".requests")]
-static PROCESSORS: MpRequest = MpRequest::new();
 
 #[used]
 #[unsafe(link_section = ".requests")]
@@ -81,14 +78,51 @@ pub extern "C" fn kernel_init() {
     unsafe {
         println!("booting estros...");
 
-        println!("loading init...");
-        let init = include_bytes!("../../build/init.elf");
-        let init_elf = ElfBytes::<AnyEndian>::minimal_parse(init).expect("INVALID INIT FILE");
-        println!("launching process");
-        let init_pid = PROCESS_MANAGER
-            .lock(|manager| manager.launch_process(init_elf))
-            .expect("failed to launch init");
-        println!("launched pid {}", init_pid);
+        mp_init().expect("multiprocessing failed to initialise");
+
+        #[cfg(any())]
+        {
+            use crate::mem::mmu::NORMAL_CACHEABLE;
+            use crate::mem::paging::ArbitraryTranslation;
+            use crate::mem::paging::kernel_virtual_to_physical;
+            use aarch64_paging::Mapping;
+            use aarch64_paging::descriptor::PhysicalAddress;
+            use aarch64_paging::paging::PAGE_SIZE;
+            use aarch64_paging::paging::{Constraints, MemoryRegion};
+            use alloc::alloc::alloc;
+            use core::alloc::Layout;
+
+            // debug printing an empty mapping
+            let mut memmap = Mapping::new(
+                ArbitraryTranslation,
+                0,
+                0,
+                aarch64_paging::paging::TranslationRegime::El1And0,
+                aarch64_paging::paging::VaRange::Lower,
+            );
+            let layout = Layout::from_size_align(10, PAGE_SIZE).unwrap();
+            let allocation = alloc(layout);
+            memmap
+                .map_range(
+                    &MemoryRegion::new(0x4000 as usize, 0x8000 as usize),
+                    PhysicalAddress(kernel_virtual_to_physical(allocation) as usize),
+                    NORMAL_CACHEABLE,
+                    Constraints::empty(),
+                )
+                .unwrap();
+            println!("{:?}", memmap);
+        }
+        #[cfg(all())]
+        {
+            println!("loading init...");
+            let init = include_bytes!("../../build/init.elf");
+            let init_elf = ElfBytes::<AnyEndian>::minimal_parse(init).expect("INVALID INIT FILE");
+            println!("launching process");
+            let init_pid = PROCESS_MANAGER
+                .lock(|manager| manager.launch_process(init_elf))
+                .expect("failed to launch init");
+            println!("launched pid {}", init_pid);
+        }
     };
 }
 
@@ -96,6 +130,9 @@ extern "C" fn get_init_process(initial_thread_state: *mut State) {
     unsafe {
         let thread = PROCESS_MANAGER.lock(|manager| manager.schedule().unwrap());
         *initial_thread_state = thread.state;
+        asm!("    tlbi vmalle1");
+        asm!("    dsb sy");
+        asm!("    isb");
     }
     println!("loaded init");
 }

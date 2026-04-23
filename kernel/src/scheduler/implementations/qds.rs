@@ -1,5 +1,8 @@
 use crate::{
-    mem::paging::{ArbitraryTranslation, kernel_virtual_to_physical},
+    mem::{
+        mmu::NORMAL_CACHEABLE,
+        paging::{ArbitraryTranslation, kernel_virtual_to_physical},
+    },
     println,
     scheduler::{
         CpuScheduler,
@@ -83,7 +86,8 @@ impl CpuScheduler for QDScheduler {
                         (header.p_vaddr + header.p_memsz) as usize,
                     ),
                     PhysicalAddress(kernel_virtual_to_physical(allocation) as usize),
-                    elf_flags_to_mmu_constrains(header.p_flags),
+                    NORMAL_CACHEABLE,
+                    //elf_flags_to_mmu_constrains(header.p_flags),
                     Constraints::empty(),
                 )
                 .expect("idk man. TODO probably handle this error idk");
