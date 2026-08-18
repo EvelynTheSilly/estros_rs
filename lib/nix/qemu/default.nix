@@ -35,6 +35,16 @@
       init = self'.packages.init;
       cross = pkgs.pkgsCross.aarch64-embedded;
       isLinux = system != "aarch64-darwin";
+
+      gdbWrapper = pkgs.writeShellScriptBin "gdb" ''
+        tmpgdbinit=$(mktemp)
+        trap 'rm -f "$tmpgdbinit"' EXIT
+        sed \
+          -e 's|KERNEL_ELF_PATH|${kernel}/kernel.elf|g' \
+          -e 's|INIT_ELF_PATH|${init}/init.elf|g' \
+          ${./gdbinit} > "$tmpgdbinit"
+        exec ${cross.buildPackages.gdb}/bin/aarch64-none-elf-gdb -ix "$tmpgdbinit" "$@"
+      '';
     in
     {
       packages = {
@@ -45,18 +55,13 @@
           exec ${run}/bin/estros-run "$@"
         '';
         kdebug = pkgs.writeShellScriptBin "kdebug" ''
+          ${pkgs.alacritty}/bin/alacritty -e ${gdbWrapper}/bin/gdb &
+          gdb_pid=$!
+          trap 'kill $gdb_pid 2>/dev/null' EXIT
           exec ${debug}/bin/estros-debug "$@"
         '';
       } // pkgs.lib.optionalAttrs isLinux {
-        gdb = pkgs.writeShellScriptBin "gdb" ''
-          tmpgdbinit=$(mktemp)
-          trap 'rm -f "$tmpgdbinit"' EXIT
-          sed \
-            -e 's|KERNEL_ELF_PATH|${kernel}/kernel.elf|g' \
-            -e 's|INIT_ELF_PATH|${init}/init.elf|g' \
-            ${./gdbinit} > "$tmpgdbinit"
-          exec ${cross.buildPackages.gdb}/bin/aarch64-none-elf-gdb -ix "$tmpgdbinit" "$@"
-        '';
+        gdb = gdbWrapper;
       };
     };
 }
