@@ -1,7 +1,6 @@
 use alloc::{collections::BTreeMap, vec::Vec};
 use thiserror::Error;
 
-
 pub type Mid = u64;
 pub type Result<T> = core::result::Result<T, MessageError>;
 
@@ -76,7 +75,7 @@ impl MessageStore {
     /// returns either the length of the message, or the requested length (whichever is less)
     pub fn read_message(&mut self, mid: Mid, len: usize) -> Result<Vec<u8>> {
         let Result::Ok(message) = self.get_message_mut(&mid) else {
-            panic!();
+            return Err(MessageError::InvalidMid);
         };
 
         let (allocation, is_empty) = message.read_bytes(len);
