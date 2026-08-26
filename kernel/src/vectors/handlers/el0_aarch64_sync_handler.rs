@@ -52,10 +52,11 @@ extern "C" fn el0_aarch64_sync_handler(state: &mut cpu_state::State) {
         }
     };
     (&PROCESS_MANAGER, &CPU_STATE_MANAGER).lock(|(scheduler, manager)| {
-        let _ = scheduler
+        if let Ok(proc) = scheduler
             .get_process_mut(pid.expect("the cpu should have a previous pid at this point"))
-            .expect("proccess should still exist")
-            .report_thread_state(tid.unwrap(), state.clone());
+        {
+            proc.report_thread_state(tid.unwrap(), state.clone());
+        }
         let maybe_schedule = scheduler.schedule();
         let (pid, tid, thread) = match maybe_schedule {
             Err(e) => match e {
