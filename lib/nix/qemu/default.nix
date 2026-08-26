@@ -52,6 +52,10 @@
           trap 'kill $gdb_pid 2>/dev/null' EXIT
           exec nix run .#debug -- "$@"
         '';
+        kbacon = pkgs.writeShellScriptBin "kbacon" ''
+          cd "$(git rev-parse --show-toplevel)/kernel"
+          exec bacon -- -Z json-target-spec "$@"
+        '';
       } // pkgs.lib.optionalAttrs isLinux {
         gdb = pkgs.writeShellScriptBin "gdb" ''
           kernel_path=$(nix build .#kernel_elf --no-link --print-out-paths)
