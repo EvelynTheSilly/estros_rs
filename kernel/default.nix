@@ -1,86 +1,71 @@
-{ inputs, lib, ... }:
 {
-  imports = [ inputs.flake-parts.flakeModules.nixpkgs ];
+  craneLib,
+  pkgs,
+  rust,
+  init,
+  buildType ? "release",
+}:
 
-  options.estros = {
-    init = lib.mkOption {
-      type = lib.types.package;
-      description = "The cross-compiled init ELF to embed in the kernel";
-    };
-    system = lib.mkOption {
-      type = lib.types.str;
-      default = builtins.currentSystem;
-      description = "The host system for the build toolchain";
-    };
+let
+  cross = pkgs.pkgsCross.aarch64-embedded;
+  isRelease = buildType == "release";
+
+  src = pkgs.lib.cleanSourceWith {
+    src = ./.;
+    filter = path: type:
+      let
+        name = builtins.baseNameOf (builtins.toString path);
+      in
+      craneLib.filterCargoSources path type
+      || name == "aarch64-none-custom.json"
+      || name == "linker.ld";
   };
 
-  perSystem =
-    { system, ... }:
-    {
-      estros.system = system;
+  cargoProfileDir = if isRelease then "release" else "debug";
+  profileArg = if isRelease then "--release" else "--profile dev";
+
+  commonArgs = {
+    inherit src;
+    pname = "estros-kernel";
+    version = "0.1.0";
+    strictDeps = true;
+    doCheck = false;
+
+    cargoVendorDir = craneLib.vendorMultipleCargoDeps {
+      inherit (craneLib.findCargoFiles src) cargoConfigs;
+      cargoLockList = [
+        "${./.}/Cargo.lock"
+        "${rust}/lib/rustlib/src/rust/library/Cargo.lock"
+      ];
     };
 
-  flake =
-    { config, ... }:
-    let
-      estros-lib = import ../lib/nix/_helpers {
-        nixpkgs = inputs.nixpkgs;
-        rust-overlay = inputs.rust-overlay;
-      };
+    cargoBuildCommand = "cargo build ${profileArg}";
+    cargoCheckCommand = "cargo check ${profileArg}";
+    cargoTestCommand = "cargo test ${profileArg}";
+    cargoExtraArgs = "-Z json-target-spec --locked --target aarch64-none-custom.json --bin kernel";
 
-      pkgs = import inputs.nixpkgs {
-        system = config.estros.system;
-        overlays = [ inputs.rust-overlay.overlays.default ];
-        config.allowUnsupportedSystem = true;
-      };
+    nativeBuildInputs = [
+      cross.buildPackages.gcc
+    ];
 
-      rust = estros-lib.makeRustToolchain pkgs;
-      cross = pkgs.pkgsCross.aarch64-embedded;
+    extraDummyScript = ''
+      cp ${./.}/aarch64-none-custom.json $out/aarch64-none-custom.json
+    '';
+  };
 
-      rustPlatform = pkgs.makeRustPlatform {
-        cargo = rust;
-        rustc = rust;
-      };
+  cargoArtifacts = craneLib.buildDepsOnly (commonArgs // {
+    pname = "estros-kernel-deps";
+  });
 
-      sysrootLock = "${rust}/lib/rustlib/src/rust/library/Cargo.lock";
-      kernelDeps = rustPlatform.importCargoLock { lockFile = ./Cargo.lock; };
-      sysrootDeps = rustPlatform.importCargoLock { lockFile = sysrootLock; };
-      combinedDeps = pkgs.runCommand "cargo-vendor-dir" { } ''
-        mkdir -p $out
-        cp -rL ${sysrootDeps}/* $out/
-        chmod -R u+w $out
-        cp -rL ${kernelDeps}/* $out/
-      '';
-    in
-    {
-      packages.kernel_elf = rustPlatform.buildRustPackage {
-        name = "estros_kernel";
-        src = ./.;
+  kernel = craneLib.buildPackage (commonArgs // {
+    inherit cargoArtifacts;
 
-        cargoDeps = combinedDeps;
+    env.INIT_ELF_PATH = "${init}/init.elf";
 
-        buildType = "debug";
-        doCheck = false;
-        auditable = false;
-
-        env.INIT_ELF_PATH = "${config.estros.init}/init.elf";
-
-        nativeBuildInputs = [
-          cross.buildPackages.gcc
-        ];
-
-        buildPhase = ''
-          runHook preBuild
-          ${rust}/bin/cargo build --bin kernel -Z json-target-spec --locked --offline --target aarch64-none-custom.json
-          runHook postBuild
-        '';
-
-        installPhase = ''
-          runHook preInstall
-          mkdir $out
-          cp ./target/aarch64-none-custom/debug/kernel $out/kernel.elf
-          runHook postInstall
-        '';
-      };
-    };
-}
+    installPhaseCommand = ''
+      mkdir -p $out
+      cp target/aarch64-none-custom/${cargoProfileDir}/kernel $out/kernel.elf
+    '';
+  });
+in
+kernel

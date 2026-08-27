@@ -9,7 +9,7 @@ pub struct QDScheduler {
     processes: BTreeMap<u64, Process>,
 }
 
-impl const Default for QDScheduler {
+const impl Default for QDScheduler {
     fn default() -> Self {
         Self {
             processes: BTreeMap::<u64, Process>::new(),

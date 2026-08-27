@@ -17,7 +17,7 @@ pub struct RoundRobinScheduler {
     current_robin: usize,
 }
 
-impl const Default for RoundRobinScheduler {
+const impl Default for RoundRobinScheduler {
     fn default() -> Self {
         Self {
             processes: Vec::new(),

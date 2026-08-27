@@ -1,9 +1,17 @@
 { inputs, ... }:
+
 let
-  helpers = import ./_helpers.nix {
-    nixpkgs = inputs.nixpkgs;
-    rust-overlay = inputs.rust-overlay;
-  };
+  makeRustToolchain =
+    pkgs:
+    let
+      toml = builtins.fromTOML (builtins.readFile ../../rust-toolchain.toml);
+      tc = toml.toolchain;
+    in
+    pkgs.rust-bin.fromRustupToolchain {
+      channel = tc.channel;
+      components = tc.components or [ ];
+      targets = tc.targets or [ ];
+    };
 in
 {
   imports = [ inputs.flake-parts.flakeModules.nixpkgs ];
@@ -11,6 +19,6 @@ in
   perSystem =
     { pkgs, ... }:
     {
-      packages.rust = helpers.makeRustToolchain (pkgs.extend inputs.rust-overlay.overlays.default);
+      packages.rust = makeRustToolchain (pkgs.extend inputs.rust-overlay.overlays.default);
     };
 }

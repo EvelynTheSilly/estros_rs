@@ -1,15 +1,14 @@
 { lib, ... }:
 {
-  options.estros = {
-    init = lib.mkOption {
-      type = lib.types.package;
-      description = "The cross-compiled init ELF to embed in the kernel";
-    };
-    system = lib.mkOption {
-      type = lib.types.str;
-      default = builtins.currentSystem;
-      description = "The host system for the build toolchain";
-    };
+  options.estros.inits = lib.mkOption {
+    type = lib.types.attrsOf (lib.types.attrsOf (lib.types.submodule {
+      options = {
+        name = lib.mkOption { type = lib.types.str; };
+        pkg = lib.mkOption { type = lib.types.package; };
+      };
+    }));
+    default = { };
+    description = "Named init definitions grouped by source";
   };
 
   config.systems = [

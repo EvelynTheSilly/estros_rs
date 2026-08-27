@@ -1,4 +1,4 @@
 [toolchain]
-channel = "nightly"
+channel = "nightly-2026-08-22"
 components = ["rust-src", "rust-analyzer"]
 targets = ["aarch64-unknown-none"]

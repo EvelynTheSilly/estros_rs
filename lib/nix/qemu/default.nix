@@ -1,45 +1,43 @@
-{ inputs, ... }:
+{ inputs, self, ... }:
 {
   imports = [ inputs.flake-parts.flakeModules.nixpkgs ];
 
   perSystem =
     {
-      inputs',
       self',
       pkgs,
       system,
       ...
     }:
     let
-      limine = pkgs.limine-full;
-      ovmf = pkgs.pkgsCross.aarch64-multiplatform.OVMF.fd;
       cross = pkgs.pkgsCross.aarch64-embedded;
       isLinux = system != "aarch64-darwin";
 
-      build = import ./_build.nix {
-        pkgs = pkgs;
+      release = self.lib.qemu.buildDiskImage {
         kernel = self'.packages.kernel_elf;
-        inherit limine ovmf;
+        inherit pkgs;
       };
-      mkScript = import ./_scripts.nix;
+      debug = self.lib.qemu.buildDiskImage {
+        kernel = self'.packages.kernel_elf_debug;
+        inherit pkgs;
+      };
 
-      run =
-        mkScript {
-          inherit pkgs;
-          name = "estros-run";
-          inherit (build) efiVars diskImage;
-        };
-      debug =
-        mkScript {
-          inherit pkgs;
-          name = "estros-debug";
-          inherit (build) efiVars diskImage;
-          extraFlags = "-S -s";
-        };
+      run = self.lib.qemu.buildScript {
+        inherit pkgs;
+        name = "estros-run";
+        inherit (release) efiVars diskImage;
+      };
+      debugScript = self.lib.qemu.buildScript {
+        inherit pkgs;
+        name = "estros-debug";
+        inherit (debug) efiVars diskImage;
+        extraFlags = "-S -s";
+      };
     in
     {
       packages = {
-        inherit run debug;
+        inherit run;
+        debug = debugScript;
         default = run;
 
         krun = pkgs.writeShellScriptBin "krun" ''
@@ -58,8 +56,8 @@
         '';
       } // pkgs.lib.optionalAttrs isLinux {
         gdb = pkgs.writeShellScriptBin "gdb" ''
-          kernel_path=$(nix build .#kernel_elf --no-link --print-out-paths)
-          init_path=$(nix build .#init --no-link --print-out-paths)
+          kernel_path=$(nix build .#kernel_elf_debug --no-link --print-out-paths)
+          init_path=$(nix build .#init_debug --no-link --print-out-paths)
           tmpgdbinit=$(mktemp)
           trap 'rm -f "$tmpgdbinit"' EXIT
           sed \
