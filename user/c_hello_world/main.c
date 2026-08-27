@@ -1,6 +1,9 @@
 #include <syscalls.h>
+#include <string.h>
+#include <stdio.h>
+
 int main(){
     char hello[] = "haiii";
-    write(hello, 6);
+    puts(hello);
     exit();
 }

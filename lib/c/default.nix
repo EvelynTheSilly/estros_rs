@@ -22,7 +22,8 @@ let
         done
 
         objs=""
-        for f in $src/*.c $src/*.S; do
+        shopt -s globstar
+        for f in "$src"/**/*.{c,S}; do
           [ -e "$f" ] || continue
           case "$(basename "$f")" in
             ctr.c|ctr.S) continue ;;
