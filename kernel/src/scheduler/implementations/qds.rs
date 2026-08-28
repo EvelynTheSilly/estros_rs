@@ -1,5 +1,5 @@
 use crate::scheduler::{
-    CpuScheduler, CpuSchedulerError, Result, process::Process, threads::SchedulerThread,
+    CpuScheduler, CpuSchedulerError, Result, process::Process, process::threads::SchedulerThread,
 };
 use alloc::collections::btree_map::BTreeMap;
 

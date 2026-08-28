@@ -2,11 +2,7 @@ use crate::{
     mem::paging::{EstrTranslation, kernel_virtual_to_physical},
     println,
     rng::{RNG, Rng},
-    scheduler::{
-        allocations::{SchedulerPointer, SegmentAllocation, elf_flags_to_mmu_constrains},
-        process::messages::MessageStore,
-        threads::SchedulerThread,
-    },
+    scheduler::process::messages::MessageStore,
     syncronisation::Mutex,
     vectors::cpu_state::State,
 };
@@ -16,12 +12,16 @@ use aarch64_paging::{
     paging::{Constraints, MemoryRegion, PAGE_SIZE},
 };
 use alloc::{alloc::alloc, collections::btree_map::BTreeMap, vec::Vec};
+use allocations::{SchedulerPointer, SegmentAllocation, elf_flags_to_mmu_constrains};
 use core::{alloc::Layout, arch::asm};
 use elf::{ElfBytes, abi::PT_LOAD, endian::AnyEndian};
 use thiserror::Error;
+use threads::SchedulerThread;
 
+mod allocations;
 mod mem;
 mod messages;
+pub mod threads;
 
 #[derive(Error, Debug)]
 pub(crate) enum ProccessError {

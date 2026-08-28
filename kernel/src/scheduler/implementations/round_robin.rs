@@ -1,7 +1,7 @@
 use crate::scheduler::CpuSchedulerError;
 use crate::{
     rng::{RNG, Rng},
-    scheduler::{CpuScheduler, Result, process::Process, threads::SchedulerThread},
+    scheduler::{CpuScheduler, Result, process::Process, process::threads::SchedulerThread},
     syncronisation::Mutex,
 };
 use alloc::vec::Vec;

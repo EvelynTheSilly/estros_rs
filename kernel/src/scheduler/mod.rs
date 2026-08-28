@@ -3,13 +3,11 @@
 use crate::scheduler::implementations::GlobalScheduler;
 use crate::scheduler::process::Process;
 use crate::syncronisation::GlobalSharedLock;
+use process::threads::SchedulerThread;
 use thiserror::Error;
-use threads::SchedulerThread;
 
-mod allocations;
 mod implementations;
 pub mod process;
-mod threads;
 
 pub trait CpuScheduler: Sized + Default {
     /// a process always spawns with one thread at the _start label
