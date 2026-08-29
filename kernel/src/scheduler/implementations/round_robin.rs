@@ -1,9 +1,5 @@
 use crate::scheduler::CpuSchedulerError;
-use crate::{
-    rng::{RNG, Rng},
-    scheduler::{CpuScheduler, Result, process::Process, process::threads::SchedulerThread},
-    syncronisation::Mutex,
-};
+use crate::scheduler::{CpuScheduler, Result, process::Process, process::threads::SchedulerThread};
 use alloc::vec::Vec;
 
 struct ProcessMeta {
@@ -14,6 +10,7 @@ struct ProcessMeta {
 
 pub struct RoundRobinScheduler {
     processes: Vec<ProcessMeta>,
+    running_pid: u64,
     current_robin: usize,
 }
 
@@ -21,6 +18,7 @@ const impl Default for RoundRobinScheduler {
     fn default() -> Self {
         Self {
             processes: Vec::new(),
+            running_pid: 0,
             current_robin: 0,
         }
     }
@@ -36,6 +34,11 @@ impl ProcessMeta {
 }
 
 impl RoundRobinScheduler {
+    fn next_pid(&mut self) -> u64 {
+        self.running_pid = self.running_pid + 1;
+        return self.running_pid;
+    }
+
     /// always returns the next index into the proccesses vector, bounded by its length
     fn get_next_robin(&mut self) -> Option<usize> {
         let mut robin = self.current_robin + 1;
@@ -85,7 +88,7 @@ impl CpuScheduler for RoundRobinScheduler {
         Ok((procmeta.pid.clone(), tid.clone(), thread.clone()))
     }
     fn launch_process(&mut self, process: Process) -> Result<u64> {
-        let pid = RNG.lock(|rng| rng.rand_u64_not_by(|pid| self.has_pid(pid)));
+        let pid = self.next_pid();
         self.processes.push(ProcessMeta {
             pid,
             tid_robin: 0,
