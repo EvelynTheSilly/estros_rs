@@ -2,7 +2,6 @@
   craneLib,
   pkgs,
   rust,
-  init,
   buildType ? "release",
 }:
 
@@ -59,8 +58,6 @@ let
 
   kernel = craneLib.buildPackage (commonArgs // {
     inherit cargoArtifacts;
-
-    env.INIT_ELF_PATH = "${init}/init.elf";
 
     installPhaseCommand = ''
       mkdir -p $out

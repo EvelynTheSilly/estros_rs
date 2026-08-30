@@ -1,5 +1,6 @@
 #![no_std]
 #![no_main]
+#![allow(unused_features)]
 #![feature(macro_metavar_expr_concat)]
 #![feature(const_convert)]
 #![feature(likely_unlikely)]
@@ -24,13 +25,12 @@ use crate::{
     dtb::Dtb,
     mem::mmu,
     multiprocessor::mp_init,
-    scheduler::{CpuScheduler, PROCESS_MANAGER, process::Process},
+    scheduler::{CpuScheduler, PROCESS_MANAGER, init::launch_init},
     syncronisation::Mutex,
     vectors::cpu_state::State,
 };
 use aarch64_cpu::asm::wfi;
 use core::{arch::asm, panic::PanicInfo, sync::atomic::AtomicU64};
-use elf::{ElfBytes, endian::AnyEndian};
 use limine::{
     BaseRevision,
     request::{DeviceTreeBlobRequest, RequestsEndMarker, RequestsStartMarker, StackSizeRequest},
@@ -91,13 +91,7 @@ pub extern "C" fn kernel_init() {
         let _dtb = Dtb::new(dtb.dtb_ptr() as *const u8).expect("failed to parse dtb");
 
         println!("loading init...");
-        let init = include_bytes!(env!("INIT_ELF_PATH"));
-        let init_elf = ElfBytes::<AnyEndian>::minimal_parse(init).expect("INVALID INIT FILE");
-        let init_process = Process::from_elf(init_elf).expect("failed to map init process");
-        let init_pid = PROCESS_MANAGER
-            .lock(|manager| manager.launch_process(init_process))
-            .expect("failed to launch init");
-        println!("launched pid {}", init_pid);
+        launch_init();
     };
 }
 

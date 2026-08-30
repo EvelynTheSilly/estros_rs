@@ -7,6 +7,7 @@ use process::threads::SchedulerThread;
 use thiserror::Error;
 
 mod implementations;
+pub mod init;
 pub mod process;
 
 pub trait CpuScheduler: Sized + Default {

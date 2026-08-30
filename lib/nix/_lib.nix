@@ -18,7 +18,6 @@ let
 
   buildKernel =
     {
-      init,
       pkgs,
       buildType ? "release",
       rust ? null,
@@ -28,7 +27,7 @@ let
       craneLib = (inputs.crane.mkLib pkgs).overrideToolchain rust';
     in
     import ../../kernel {
-      inherit craneLib pkgs init buildType;
+      inherit craneLib pkgs buildType;
       rust = rust';
     };
 
@@ -37,6 +36,7 @@ let
 
   buildDiskImage =
     {
+      init,
       kernel,
       pkgs,
       limine ? pkgs.limine-full,
@@ -57,6 +57,7 @@ let
         ${pkgs.mtools}/bin/mmd -i $out/part.fat ::/EFI/BOOT
         ${pkgs.mtools}/bin/mcopy -i $out/part.fat ${limine}/share/limine/BOOTAA64.EFI ::/EFI/BOOT/BOOTAA64.EFI
         ${pkgs.mtools}/bin/mcopy -i $out/part.fat ${kernel}/kernel.elf ::/kernel.elf
+        ${pkgs.mtools}/bin/mcopy -i $out/part.fat ${init}/init.elf ::/init.elf
         ${pkgs.mtools}/bin/mcopy -i $out/part.fat ${limineConf} ::/limine.conf
 
         dd if=$out/part.fat of=$out/disk.img bs=1M seek=1 conv=notrunc
