@@ -55,7 +55,7 @@ extern "C" fn el0_aarch64_sync_handler(state: &mut cpu_state::State) {
         if let Ok(proc) = scheduler
             .get_process_mut(pid.expect("the cpu should have a previous pid at this point"))
         {
-            proc.report_thread_state(tid.unwrap(), state.clone());
+            let _ = proc.report_thread_state(tid.unwrap(), state.clone());
         }
         let maybe_schedule = scheduler.schedule();
         let (pid, tid, thread) = match maybe_schedule {

@@ -23,7 +23,10 @@ pub fn read_message(state: &mut State, pid: u64) -> SyscallResult {
             return Some(Err(SyscallError { code: 1 }));
         };
         let read = buff.len() as u64;
-        process.mem_write(process_pointer as usize, buff);
-        Some(Ok(read))
+        if process.mem_write(process_pointer as usize, buff).is_err() {
+            Some(Err(SyscallError { code: 2 }))
+        } else {
+            Some(Ok(read))
+        }
     })
 }
