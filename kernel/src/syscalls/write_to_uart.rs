@@ -8,7 +8,7 @@ use crate::{
 use alloc::string::String;
 use alloc::vec;
 
-pub fn write_to_uart(state: &mut State, pid: u64) -> SyscallResult {
+pub fn write_to_uart(state: &mut State, pid: u64, _tid: u64) -> SyscallResult {
     PROCESS_MANAGER.lock(|scheduler| {
         let Ok(process) = scheduler.get_process(pid) else {
             return None; // pid should be valid but if its not just do nothing

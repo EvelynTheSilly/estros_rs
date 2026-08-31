@@ -42,7 +42,7 @@ extern "C" fn el0_aarch64_sync_handler(state: &mut cpu_state::State) {
     });
     match ec {
         21 => {
-            handle_syscall(state, iss, pid.unwrap());
+            handle_syscall(state, iss, pid.unwrap(), tid.unwrap());
         }
         _ => {
             panic!(

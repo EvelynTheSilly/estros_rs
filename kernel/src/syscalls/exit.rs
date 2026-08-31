@@ -5,7 +5,7 @@ use crate::{
     vectors::cpu_state::State,
 };
 
-pub fn exit(_state: &mut State, pid: u64) -> SyscallResult {
+pub fn exit(_state: &mut State, pid: u64, _tid: u64) -> SyscallResult {
     PROCESS_MANAGER.lock(|scheduler| {
         scheduler
             .kill_process(pid)
