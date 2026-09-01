@@ -1,17 +1,14 @@
 use crate::{
     mem::paging::{EstrTranslation, kernel_virtual_to_physical},
     println,
-    rng::{RNG, Rng},
-    scheduler::process::messages::MessageStore,
-    syncronisation::Mutex,
-    vectors::cpu_state::State,
+    scheduler::process::{messages::MessageStore, threads::ThreadStore},
 };
 use aarch64_paging::{
     Mapping,
     descriptor::PhysicalAddress,
     paging::{Constraints, MemoryRegion, PAGE_SIZE},
 };
-use alloc::{alloc::alloc, collections::btree_map::BTreeMap, vec::Vec};
+use alloc::{alloc::alloc, vec::Vec};
 use allocations::{SchedulerPointer, SegmentAllocation, elf_flags_to_mmu_constrains};
 use core::{alloc::Layout, arch::asm};
 use elf::{ElfBytes, abi::PT_LOAD, endian::AnyEndian};
@@ -40,30 +37,10 @@ pub struct Process {
     pub message_store: MessageStore,
     pub segments: Vec<SegmentAllocation>,
     pub memory_map: Mapping<EstrTranslation>,
-    pub threads: BTreeMap<u64, SchedulerThread>,
+    pub threads: ThreadStore,
 }
 
 impl Process {
-    pub fn kill_thread(&mut self, tid: u64) -> Result<()> {
-        self.threads
-            .remove(&tid)
-            .map(|_| ())
-            .ok_or(ProccessError::InvalidTid)
-    }
-    pub fn spawn_thread(&mut self, thread: SchedulerThread) -> Result<u64> {
-        let threads = &mut self.threads;
-        let tid =
-            RNG.lock(|rng| rng.rand_u64_not_by(|candidate| !threads.contains_key(&candidate)));
-        threads.insert(tid, thread);
-        Ok(tid)
-    }
-    pub fn report_thread_state(&mut self, tid: u64, state: State) -> Result<()> {
-        self.threads
-            .get_mut(&tid)
-            .ok_or(ProccessError::InvalidTid)?
-            .state = state;
-        Ok(())
-    }
     pub fn activate_memory_map(&mut self) -> usize {
         let previous_ttbr;
         unsafe {
@@ -146,16 +123,8 @@ impl Process {
             })
             .ok_or(ProccessError::ElfParseError("process has no start label"))?;
         let start_address = start_sym.st_value;
-        let mut threads = BTreeMap::new();
-        threads.insert(
-            0,
-            SchedulerThread {
-                state: State {
-                    elr: start_address,
-                    ..Default::default()
-                },
-            },
-        );
+        let mut threads = ThreadStore::new();
+        threads.spawn(SchedulerThread::at(start_address));
 
         Ok(Process {
             message_store: MessageStore::new(),

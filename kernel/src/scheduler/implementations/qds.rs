@@ -36,7 +36,7 @@ impl CpuScheduler for QDScheduler {
             0,
             process
                 .threads
-                .get(&0)
+                .get(0)
                 .expect("should have thread id 0")
                 .clone(),
         ))
