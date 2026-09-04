@@ -1,6 +1,6 @@
 { lib, ... }:
 {
-  options.estros.inits = lib.mkOption {
+  options.flake.estros.inits = lib.mkOption {
     type = lib.types.attrsOf (lib.types.attrsOf (lib.types.submodule {
       options = {
         name = lib.mkOption { type = lib.types.str; };

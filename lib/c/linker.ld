@@ -21,5 +21,8 @@ SECTIONS
 		. = ALIGN(16);
 		. += 0x1000;
 		_stack = .;
+		_heap_end = .;
+		. += 0x1000;
+		_heap_start = .;
 	} : data
 }
