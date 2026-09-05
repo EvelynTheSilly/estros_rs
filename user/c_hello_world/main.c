@@ -5,5 +5,5 @@
 int main(){
     char hello[] = "haiii";
     puts(hello);
-    exit();
+    sys_exit();
 }

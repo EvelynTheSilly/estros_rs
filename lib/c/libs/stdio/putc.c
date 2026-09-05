@@ -2,5 +2,5 @@
 #include <syscalls.h>
 
 void putc(int c) {
-  write(&c, 1);
+  sys_write(&c, 1);
 }

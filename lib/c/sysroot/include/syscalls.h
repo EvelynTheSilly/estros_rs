@@ -17,14 +17,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define ESTROS_SYS_NOOP         0
-#define ESTROS_SYS_WRITE_UART   1
-#define ESTROS_SYS_EXIT         2
-#define ESTROS_SYS_READ_MESSAGE 3
-
-void noop(void);
-void write(const void *buf, size_t len);
-void exit(void);
-int read_message(uint64_t mid, void *buf, size_t len);
+void sys_noop(void);
+void sys_write(const void *buf, size_t len);
+void sys_exit(void);
+int sys_read_message(uint64_t mid, void *buf, size_t len);
 
 #endif /* SYSCALLS_H */

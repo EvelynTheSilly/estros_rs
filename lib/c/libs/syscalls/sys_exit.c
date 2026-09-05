@@ -1,5 +1,5 @@
 #include "syscalls.h"
 
-void exit(void) {
+void sys_exit(void) {
     __asm__ volatile("svc #2");
 }

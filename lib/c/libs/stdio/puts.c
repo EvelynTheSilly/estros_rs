@@ -3,6 +3,6 @@
 #include <string.h>
 
 void puts(const char* str) {
-  write(str, strlen(str));
+  sys_write(str, strlen(str));
 }
 

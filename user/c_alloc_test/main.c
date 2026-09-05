@@ -13,5 +13,5 @@ int main(){
     }
     puts(buf);
     free(buf);
-    exit();
+    sys_exit();
 }
