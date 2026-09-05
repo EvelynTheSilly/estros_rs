@@ -22,7 +22,7 @@ SECTIONS
 		. += 0x1000;
 		_stack = .;
 		_heap_end = .;
-		. += 0x1000;
+		. += 0x10000;
 		_heap_start = .;
 	} : data
 }
