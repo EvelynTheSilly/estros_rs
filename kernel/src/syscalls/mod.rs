@@ -1,14 +1,27 @@
 use crate::{
-    syscalls::{exit::exit, read_message::read_message, write_to_uart::write_to_uart},
+    syscalls::{
+        exit::exit, kill_thread::kill_thread, read_message::read_message,
+        spawn_thread::spawn_thread, write_to_uart::write_to_uart,
+    },
     vectors::cpu_state::State,
 };
 use thiserror::Error;
-pub mod exit;
-pub mod read_message;
-pub mod write_to_uart;
+mod exit;
+mod kill_thread;
+mod read_message;
+mod spawn_thread;
+mod write_to_uart;
 
-const SYSCALLS: &[fn(&mut State, u64, u64) -> SyscallResult] =
-    &[|_, _, _| None, write_to_uart, exit, read_message];
+const SYSCALLS: &[fn(&mut State, u64, u64) -> SyscallResult] = &[
+    |_, _, _| None, // noop
+    write_to_uart,
+    exit,
+    read_message,
+    |_, pid, _| Some(Ok(pid)), // get_pid
+    |_, _, tid| Some(Ok(tid)), // get_tid
+    spawn_thread,
+    kill_thread,
+];
 
 pub fn handle_syscall(state: &mut State, iss: u64, pid: u64, tid: u64) {
     let Some(syscall_fn) = SYSCALLS.get(iss as usize) else {
@@ -43,4 +56,8 @@ type SyscallResult = Option<Result<u64, SyscallError>>;
 #[error("syscall error")]
 pub struct SyscallError {
     code: u64,
+}
+
+fn syscall_err(code: u64) -> SyscallResult {
+    Some(Err(SyscallError { code }))
 }
